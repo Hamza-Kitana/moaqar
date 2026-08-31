@@ -33,53 +33,111 @@ function employeeStepIndex(status: ComplaintStatus): number {
 }
 
 function StepNode({
-  index,
   label,
   done,
   active,
-  isLast,
+  compact,
 }: {
-  index: number;
   label: string;
   done: boolean;
   active: boolean;
-  isLast: boolean;
+  compact?: boolean;
 }) {
   return (
-    <li className="flex min-w-0 flex-1 items-start">
-      <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
-        <span
-          className={cn(
-            "relative grid size-8 shrink-0 place-items-center rounded-full text-[11px] font-bold ring-2 ring-offset-2 ring-offset-secondary/60 transition-colors",
-            done && "bg-success text-success-foreground ring-success/30",
-            active && !done && "bg-primary text-primary-foreground shadow-md ring-primary/25",
-            !done && !active && "bg-card text-muted-foreground ring-border/80",
-          )}
-        >
-          {done ? <Check className="size-4" strokeWidth={2.5} /> : index + 1}
-          {active && !done && (
-            <span className="absolute -inset-0.5 animate-ping rounded-full bg-primary/20" aria-hidden />
-          )}
-        </span>
-        <span
-          className={cn(
-            "line-clamp-2 min-h-[2rem] text-[10px] leading-tight sm:text-[11px]",
-            active ? "font-bold text-foreground" : done ? "font-medium text-foreground/80" : "text-muted-foreground",
-          )}
-        >
-          {label}
-        </span>
-      </div>
-      {!isLast && (
+    <li
+      className={cn(
+        "flex shrink-0 flex-col items-center gap-1.5",
+        compact ? "w-[3.25rem] sm:w-16" : "w-[4.5rem] sm:w-20",
+      )}
+    >
+      <span
+        className={cn(
+          "relative grid size-7 shrink-0 place-items-center rounded-full transition-colors sm:size-8",
+          done && "bg-success text-success-foreground shadow-sm",
+          active && !done && "bg-primary text-primary-foreground shadow-md ring-4 ring-primary/20",
+          !done && !active && "border-2 border-border/80 bg-background",
+        )}
+      >
+        {done ? (
+          <Check className="size-3.5 sm:size-4" strokeWidth={2.5} />
+        ) : active ? (
+          <span className="size-2 rounded-full bg-primary-foreground" />
+        ) : null}
+        {active && !done && (
+          <span className="absolute -inset-1 animate-ping rounded-full bg-primary/15" aria-hidden />
+        )}
+      </span>
+      <span
+        className={cn(
+          "line-clamp-2 w-full text-center text-[9px] leading-tight sm:text-[11px]",
+          active ? "font-bold text-foreground" : done ? "font-medium text-foreground/80" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </span>
+    </li>
+  );
+}
+
+function StepperTrack({
+  steps,
+  labels,
+  currentIdx,
+}: {
+  steps: readonly string[];
+  labels: string[];
+  currentIdx: number;
+}) {
+  const compact = steps.length > 3;
+  const progress =
+    steps.length <= 1 ? 0 : Math.max(0, Math.min(1, currentIdx / (steps.length - 1)));
+  const nodeHalf = compact ? "1.625rem" : "2.25rem";
+
+  return (
+    <div className={cn("mx-auto w-full", compact ? "max-w-[15rem] sm:max-w-sm" : "max-w-[15rem] sm:max-w-xs")}>
+      <div className="relative px-1 sm:px-3">
         <div
-          className={cn(
-            "mx-1.5 mt-4 h-0.5 min-w-3 flex-1 rounded-full transition-colors",
-            done ? "bg-success/80" : "bg-border",
-          )}
+          className="absolute top-3.5 h-0.5 rounded-full bg-border sm:top-4"
+          style={{ insetInlineStart: nodeHalf, insetInlineEnd: nodeHalf }}
           aria-hidden
         />
-      )}
-    </li>
+        <div
+          className="absolute top-3.5 h-0.5 rounded-full bg-success transition-[width] duration-300 sm:top-4"
+          style={{
+            insetInlineStart: nodeHalf,
+            width: `calc((100% - ${compact ? "3.25rem" : "4.5rem"}) * ${progress})`,
+          }}
+          aria-hidden
+        />
+        <ol className="relative flex items-start justify-between">
+          {steps.map((step, i) => (
+            <StepNode
+              key={step}
+              label={labels[i] ?? step}
+              done={i < currentIdx}
+              active={i === currentIdx}
+              compact={compact}
+            />
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowStepper({
+  steps,
+  labels,
+  currentIdx,
+}: {
+  steps: readonly string[];
+  labels: string[];
+  currentIdx: number;
+}) {
+  return (
+    <div className="flex justify-center rounded-xl border border-border/60 bg-card/80 px-2 py-4 shadow-sm backdrop-blur-sm sm:px-4">
+      <StepperTrack steps={steps} labels={labels} currentIdx={currentIdx} />
+    </div>
   );
 }
 
@@ -95,39 +153,21 @@ export function WorkflowSteps({
   if (employeeView) {
     const currentIdx = employeeStepIndex(status);
     return (
-      <div className="rounded-xl border border-border/60 bg-card/80 px-3 py-4 shadow-sm backdrop-blur-sm sm:px-4">
-        <ol className="flex w-full min-w-0 items-start">
-          {EMPLOYEE_STEPS.map((step, i) => (
-            <StepNode
-              key={step}
-              index={i}
-              label={t(EMPLOYEE_STEP_KEYS[step])}
-              done={i < currentIdx}
-              active={i === currentIdx}
-              isLast={i === EMPLOYEE_STEPS.length - 1}
-            />
-          ))}
-        </ol>
-      </div>
+      <WorkflowStepper
+        steps={EMPLOYEE_STEPS}
+        labels={EMPLOYEE_STEPS.map((step) => t(EMPLOYEE_STEP_KEYS[step]))}
+        currentIdx={currentIdx}
+      />
     );
   }
 
   const currentIdx = adminStepIndex(status);
 
   return (
-    <div className="rounded-xl border border-border/60 bg-card/80 px-3 py-4 shadow-sm backdrop-blur-sm sm:px-4">
-      <ol className="flex w-full min-w-0 items-start">
-        {ADMIN_STEPS.map((step, i) => (
-          <StepNode
-            key={step}
-            index={i}
-            label={t(ADMIN_STEP_KEYS[step])}
-            done={i < currentIdx}
-            active={i === currentIdx}
-            isLast={i === ADMIN_STEPS.length - 1}
-          />
-        ))}
-      </ol>
-    </div>
+    <WorkflowStepper
+      steps={ADMIN_STEPS}
+      labels={ADMIN_STEPS.map((step) => t(ADMIN_STEP_KEYS[step]))}
+      currentIdx={currentIdx}
+    />
   );
 }

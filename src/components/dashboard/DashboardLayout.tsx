@@ -151,10 +151,7 @@ export function DashboardLayout() {
 
       <div className="flex min-h-[100dvh] flex-1 flex-col lg:ms-64 print:ms-0">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 px-3 backdrop-blur-xl sm:px-4 print:hidden supports-[padding:max(0px)]:pt-[env(safe-area-inset-top)]">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="bg-gold grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold lg:hidden">
-              الم
-            </span>
+          <div className="flex min-w-0 items-center">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">
                 {currentPage ? t(currentPage.labelKey) : t("dashboard")}

@@ -55,62 +55,62 @@ function DashboardOverview() {
       </div>
 
       {isSuper ? (
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3 xl:gap-4">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-3 xl:gap-4">
           {superStats.map((s) => (
             <Link
               key={s.label}
               to={s.href}
-              className="surface app-card-tap rounded-xl p-3 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
+              className="surface app-card-tap flex min-w-0 flex-col rounded-xl p-2 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
             >
-              <div className="flex items-center justify-between gap-1">
-                <s.icon className="size-4 shrink-0 text-primary sm:size-5" />
-                <span className="font-display text-xl font-bold tabular-nums sm:text-3xl">{s.value}</span>
+              <div className="flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1">
+                <s.icon className="size-3.5 shrink-0 text-primary sm:size-5" />
+                <span className="font-display text-lg font-bold tabular-nums sm:text-3xl">{s.value}</span>
               </div>
-              <p className="mt-1.5 line-clamp-2 text-xs leading-tight text-muted-foreground group-hover:text-foreground sm:mt-3 sm:line-clamp-none sm:text-sm">
+              <p className="mt-1 line-clamp-2 text-center text-[9px] leading-tight text-muted-foreground sm:mt-3 sm:text-start sm:text-sm sm:leading-normal">
                 {s.label}
               </p>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3 xl:gap-4">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-3 xl:gap-4">
           <Link
             to="/dashboard/complaints"
-            className="surface app-card-tap rounded-xl p-3 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
+            className="surface app-card-tap flex min-w-0 flex-col rounded-xl p-2 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
           >
-            <div className="flex items-center justify-between gap-1">
-              <ClipboardList className="size-4 shrink-0 text-primary sm:size-5" />
-              <span className="font-display text-xl font-bold tabular-nums text-warning sm:text-3xl">
+            <div className="flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1">
+              <ClipboardList className="size-3.5 shrink-0 text-primary sm:size-5" />
+              <span className="font-display text-lg font-bold tabular-nums text-warning sm:text-3xl">
                 {openTasks.length}
               </span>
             </div>
-            <p className="mt-1.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground group-hover:text-foreground sm:mt-3 sm:line-clamp-none sm:text-sm">
+            <p className="mt-1 line-clamp-2 text-center text-[9px] leading-tight text-muted-foreground sm:mt-3 sm:text-start sm:text-sm sm:leading-normal">
               {t("openTasksLabel")}
             </p>
           </Link>
           <Link
             to="/dashboard/complaints"
-            className="surface app-card-tap rounded-xl p-3 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
+            className="surface app-card-tap flex min-w-0 flex-col rounded-xl p-2 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
           >
-            <div className="flex items-center justify-between gap-1">
-              <ClipboardList className="size-4 shrink-0 text-primary sm:size-5" />
-              <span className="font-display text-xl font-bold tabular-nums sm:text-3xl">{complaints.length}</span>
+            <div className="flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1">
+              <ClipboardList className="size-3.5 shrink-0 text-primary sm:size-5" />
+              <span className="font-display text-lg font-bold tabular-nums sm:text-3xl">{complaints.length}</span>
             </div>
-            <p className="mt-1.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground group-hover:text-foreground sm:mt-3 sm:line-clamp-none sm:text-sm">
+            <p className="mt-1 line-clamp-2 text-center text-[9px] leading-tight text-muted-foreground sm:mt-3 sm:text-start sm:text-sm sm:leading-normal">
               {t("totalAssignedLabel")}
             </p>
           </Link>
           <Link
             to="/dashboard/complaints"
-            className="surface app-card-tap col-span-2 rounded-xl p-3 touch-manipulation transition-transform active:scale-[0.98] sm:col-span-1 sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
+            className="surface app-card-tap flex min-w-0 flex-col rounded-xl p-2 touch-manipulation transition-transform active:scale-[0.98] sm:rounded-2xl sm:p-5 sm:hover:scale-[1.02]"
           >
-            <div className="flex items-center justify-between gap-1">
-              <ClipboardList className="size-4 shrink-0 text-success sm:size-5" />
-              <span className="font-display text-xl font-bold tabular-nums text-success sm:text-3xl">
+            <div className="flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1">
+              <ClipboardList className="size-3.5 shrink-0 text-success sm:size-5" />
+              <span className="font-display text-lg font-bold tabular-nums text-success sm:text-3xl">
                 {closedTasks.length}
               </span>
             </div>
-            <p className="mt-1.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground group-hover:text-foreground sm:mt-3 sm:line-clamp-none sm:text-sm">
+            <p className="mt-1 line-clamp-2 text-center text-[9px] leading-tight text-muted-foreground sm:mt-3 sm:text-start sm:text-sm sm:leading-normal">
               {t("resolvedTasksLabel")}
             </p>
           </Link>
@@ -148,10 +148,10 @@ function DashboardOverview() {
           </div>
         </section>
 
-        <section className="surface space-y-4 rounded-2xl p-5">
+        <section className="surface space-y-4 rounded-2xl p-5 text-center">
           <h2 className="font-semibold">{t("workflow")}</h2>
           <WorkflowSteps status={(recent[0]?.status ?? "new") as ComplaintStatus} employeeView={!isSuper} />
-          <p className="text-xs text-muted-foreground">{t("workflowHint")}</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">{t("workflowHint")}</p>
         </section>
       </div>
 
