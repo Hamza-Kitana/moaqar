@@ -1,0 +1,1 @@
+import{g as e,m as t,u as n,v as r}from"./utils-C4oEPk-s.js";import{n as i,z as a}from"./index-Dzb6_MlY.js";var o=r(e()),s=t();function c(){let{me:e}=n(),{openLogin:t}=i();return(0,o.useEffect)(()=>{e||t()},[e,t]),e?(0,s.jsx)(a,{to:`/dashboard`,replace:!0}):(0,s.jsx)(a,{to:`/`,replace:!0})}export{c as component};

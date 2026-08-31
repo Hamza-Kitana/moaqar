@@ -20,15 +20,15 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "شركة الموقر التجارية | توريد وتجهيز المكتبات" },
+      { title: "شركة الموقر التجارية | توريد وتجهيز المؤسسات" },
       {
         name: "description",
-        content: "شركة الموقر التجارية — توريد وتجهيز المكتبات في المملكة الأردنية.",
+        content: "شركة الموقر التجارية — توريد وتجهيز المؤسسات في المملكة الأردنية.",
       },
-      { property: "og:title", content: "شركة الموقر التجارية | توريد وتجهيز المكتبات" },
+      { property: "og:title", content: "شركة الموقر التجارية | توريد وتجهيز المؤسسات" },
       {
         property: "og:description",
-        content: "شركة الموقر التجارية — شريككم في توريد وتجهيز المكتبات.",
+        content: "شركة الموقر التجارية — شريككم في توريد وتجهيز المؤسسات.",
       },
     ],
   }),
@@ -300,9 +300,7 @@ function Index() {
           <div className={cn("home-rise relative flex flex-col justify-center py-12 sm:min-h-[70svh] lg:min-h-svh", SECTION_X)}>
             <div className="mx-auto w-full max-w-4xl text-center">
               <h2 className="text-2xl font-bold sm:text-3xl">{t("contact")}</h2>
-              <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-                {lang === "ar" ? "تواصل معنا — فريقنا جاهز لخدمتكم" : "Get in touch — our team is ready to help"}
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground sm:text-base">{t("homeContactIntro")}</p>
             </div>
             <ul className="relative mx-auto mt-10 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
               {contactItems.map(({ icon: Icon, label, value }) => (

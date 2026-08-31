@@ -5,25 +5,25 @@ type Lang = "ar" | "en";
 const dict = {
   brand: { ar: "شركة الموقر التجارية", en: "Al-Muwaqar Trading Co." },
   tagline: {
-    ar: "توريد وتجهيز المكتبات في جميع أنحاء المملكة",
-    en: "Supplying and equipping libraries across Jordan",
+    ar: "توريد وتجهيز المؤسسات في جميع أنحاء المملكة",
+    en: "Supplying and equipping institutions across Jordan",
   },
   heroTitle: {
     ar: "شركة الموقر التجارية",
     en: "Al-Muwaqar Trading Co.",
   },
   heroSubtitle: {
-    ar: "شريككم في توريد وتجهيز المكتبات",
-    en: "Your partner in library supply and fit-out",
+    ar: "شريككم في توريد وتجهيز المؤسسات",
+    en: "Your partner in institution supply and fit-out",
   },
   heroBody: {
-    ar: "توريد أثاث وقرطاسية وأجهزة للمكتبات — مع فرق ميدانية في عمان وعجلون وإربد.",
-    en: "Furniture, stationery, and devices for libraries — with field teams in Amman, Ajloun, and Irbid.",
+    ar: "توريد أثاث وقرطاسية وأجهزة للمؤسسات — مدارس، جامعات، مراكز، وغيرها — مع فرق ميدانية في عمان وعجلون وإربد.",
+    en: "Furniture, stationery, and equipment for institutions — schools, universities, centres, and more — with field teams in Amman, Ajloun, and Irbid.",
   },
   heroStat1: { ar: "تغطية وطنية", en: "Nationwide coverage" },
   heroStat1Desc: {
-    ar: "نخدم المكتبات في جميع محافظات المملكة الأردنية",
-    en: "We serve libraries across all governorates of Jordan",
+    ar: "نخدم المؤسسات في جميع محافظات المملكة الأردنية",
+    en: "We serve institutions across all governorates of Jordan",
   },
   heroStat2: { ar: "3 مناطق", en: "3 regions" },
   heroStat2Desc: {
@@ -32,29 +32,29 @@ const dict = {
   },
   heroStat3: { ar: "فريق متخصص", en: "Expert team" },
   heroStat3Desc: {
-    ar: "كوادر مدربة على توريد وتجهيز المكتبات باحتراف",
-    en: "Staff trained in professional library supply and fit-out",
+    ar: "كوادر مدربة على توريد وتجهيز المؤسسات باحتراف",
+    en: "Staff trained in professional institution supply and fit-out",
   },
   servicesIntro: {
-    ar: "خدماتنا للمكتبات",
-    en: "Our library services",
+    ar: "خدماتنا للمؤسسات",
+    en: "Our institution services",
   },
   servicesIntroDesc: {
     ar: "من التوريد إلى التركيب — حلول متكاملة بجودة عالية",
     en: "From supply to installation — integrated, high-quality solutions",
   },
   aboutBody: {
-    ar: "شركة أردنية متخصصة بتوريد وتجهيز المكتبات، بشبكة فروع وفرق ميدانية تضمن جودة التسليم والمتابعة.",
-    en: "A Jordanian company specialised in library supply and fit-out, with branch coverage and field teams ensuring quality delivery and follow-up.",
+    ar: "شركة أردنية متخصصة بتوريد وتجهيز المؤسسات، بشبكة فروع وفرق ميدانية تضمن جودة التسليم والمتابعة.",
+    en: "A Jordanian company specialised in institution supply and fit-out, with branch coverage and field teams ensuring quality delivery and follow-up.",
   },
   homeService1Title: { ar: "توريد وتجهيز", en: "Supply & fit-out" },
   homeService1Body: {
-    ar: "نوفر أثاث المكتبات والقرطاسية والأجهزة بمواصفات تناسب احتياج كل مكتبة.",
-    en: "We provide library furniture, stationery, and equipment tailored to each library’s needs.",
+    ar: "نوفر الأثاث والقرطاسية والأجهزة بمواصفات تناسب احتياج كل مؤسسة.",
+    en: "We provide furniture, stationery, and equipment tailored to each institution’s needs.",
   },
   homeService2Title: { ar: "تركيب وتسليم", en: "Install & deliver" },
   homeService2Body: {
-    ar: "نركّب ونسلّم في موقع المكتبة وفق جدول واضح — بدون تعطيل العمل.",
+    ar: "نركّب ونسلّم في موقع المؤسسة وفق جدول واضح — بدون تعطيل العمل.",
     en: "We install and deliver on-site on a clear schedule — without disrupting operations.",
   },
   homeService3Title: { ar: "فريق ميداني", en: "Field teams" },
@@ -63,11 +63,11 @@ const dict = {
     en: "Our field teams oversee fit-out and ensure quality execution in every region.",
   },
   homeStep1Desc: {
-    ar: "نحدّد احتياج المكتبة ونقترح الحلول المناسبة",
-    en: "We assess the library’s needs and propose the right solutions",
+    ar: "نحدّد احتياج المؤسسة ونقترح الحلول المناسبة",
+    en: "We assess the institution’s needs and propose the right solutions",
   },
   homeStep2Desc: {
-    ar: "نوصّل ونركّب في موقع المكتبة باحترافية",
+    ar: "نوصّل ونركّب في موقع المؤسسة باحترافية",
     en: "We deliver and install on-site professionally",
   },
   homeStep3Desc: {
@@ -75,8 +75,8 @@ const dict = {
     en: "We follow up after delivery and support you when needed",
   },
   homeAboutPoint1: {
-    ar: "خبرة في توريد وتجهيز المكتبات",
-    en: "Experienced in library supply and fit-out",
+    ar: "خبرة في توريد وتجهيز المؤسسات",
+    en: "Experienced in institution supply and fit-out",
   },
   homeAboutPoint2: {
     ar: "تغطية لثلاث مناطق في المملكة",
@@ -88,13 +88,17 @@ const dict = {
   },
   submitComplaint: { ar: "تقديم شكوى", en: "Submit a complaint" },
   submitComplaintDesc: {
-    ar: "بدون تسجيل دخول — أدخل معلوماتك، اختر المكتبة، اكتب المشكلة، وارفع صوراً إن رغبت.",
-    en: "No login needed — enter your details, pick the library, describe the issue, and attach photos if you want.",
+    ar: "بدون تسجيل دخول — أدخل معلوماتك، اختر المؤسسة، اكتب الشكوى، وارفع صوراً إن رغبت.",
+    en: "No login needed — enter your details, pick the institution, describe the issue, and attach photos if you want.",
   },
   complainantInfo: { ar: "معلوماتك", en: "Your details" },
   libraryLocationHint: {
-    ar: "اختر المكتبة التي فيها المشكلة — موقعها يُحدَّد تلقائياً",
-    en: "Pick the library with the issue — its location is set automatically",
+    ar: "اختر المؤسسة المعنية — موقعها يُحدَّد تلقائياً",
+    en: "Pick the relevant institution — its location is set automatically",
+  },
+  branchInstitutionRequired: {
+    ar: "يرجى اختيار المنطقة والمؤسسة",
+    en: "Please select region and institution",
   },
   nameRequired: { ar: "يرجى إدخال الاسم", en: "Please enter your name" },
   phoneRequired: { ar: "يرجى إدخال رقم الهاتف", en: "Please enter your phone number" },
@@ -115,7 +119,7 @@ const dict = {
   myTasks: { ar: "مهامي", en: "My tasks" },
   employees: { ar: "الموظفون", en: "Employees" },
   actions: { ar: "إجراءات", en: "Actions" },
-  branches: { ar: "الفروع والمكتبات", en: "Branches & libraries" },
+  branches: { ar: "الفروع والمؤسسات", en: "Branches & institutions" },
   reports: { ar: "التقارير", en: "Reports" },
   monthlyReport: { ar: "تقرير الشهر", en: "Monthly report" },
   monthlyReportDesc: {
@@ -149,8 +153,8 @@ const dict = {
     en: "Reports are available to super admin only",
   },
   branchesPageDesc: {
-    ar: "إدارة المناطق والمكتبات — بدون هيكل تنظيمي",
-    en: "Manage regions and libraries — no org hierarchy",
+    ar: "إدارة المناطق والمؤسسات التابعة لها",
+    en: "Manage regions and their client institutions",
   },
   loginDesc: {
     ar: "دخول السوبر أدمن أو الموظفين الميدانيين",
@@ -182,7 +186,7 @@ const dict = {
   notifications: { ar: "الإشعارات", en: "Notifications" },
   noNotifications: { ar: "لا إشعارات", en: "No notifications" },
   markAllRead: { ar: "تحديد الكل كمقروء", en: "Mark all read" },
-  library: { ar: "المكتبة", en: "Library" },
+  library: { ar: "المؤسسة", en: "Institution" },
   branch: { ar: "الفرع", en: "Branch" },
   location: { ar: "الموقع", en: "Location" },
   problemLocation: { ar: "موقع المشكلة", en: "Problem location" },
@@ -206,12 +210,12 @@ const dict = {
     en: "This employee account will be permanently removed. Their assigned complaints will become unassigned.",
   },
   deleteBranchConfirm: {
-    ar: "سيتم حذف هذه المنطقة وجميع المكتبات التابعة لها. لا يمكن التراجع.",
-    en: "This region and all its libraries will be permanently deleted. This cannot be undone.",
+    ar: "سيتم حذف هذه المنطقة وجميع المؤسسات التابعة لها. لا يمكن التراجع.",
+    en: "This region and all its institutions will be permanently deleted. This cannot be undone.",
   },
   deleteLibraryConfirm: {
-    ar: "سيتم حذف هذه المكتبة نهائياً. لا يمكن التراجع.",
-    en: "This library will be permanently deleted. This cannot be undone.",
+    ar: "سيتم حذف هذه المؤسسة نهائياً. لا يمكن التراجع.",
+    en: "This institution will be permanently deleted. This cannot be undone.",
   },
   deleteFailed: { ar: "تعذّر الحذف", en: "Could not delete" },
   name: { ar: "الاسم", en: "Name" },
@@ -244,10 +248,10 @@ const dict = {
   editBranch: { ar: "تعديل منطقة", en: "Edit region" },
   addBranchDesc: { ar: "أدخل اسم المنطقة بالعربي والإنجليزي والمدينة.", en: "Enter the region name in Arabic and English, plus the city." },
   editBranchDesc: { ar: "حدّث بيانات المنطقة.", en: "Update this region's details." },
-  addLibrary: { ar: "إضافة مكتبة", en: "Add library" },
-  editLibrary: { ar: "تعديل مكتبة", en: "Edit library" },
-  addLibraryDesc: { ar: "أدخل بيانات المكتبة واربطها بالمنطقة.", en: "Enter library details and link it to a region." },
-  editLibraryDesc: { ar: "حدّث بيانات المكتبة.", en: "Update this library's details." },
+  addLibrary: { ar: "إضافة مؤسسة", en: "Add institution" },
+  editLibrary: { ar: "تعديل مؤسسة", en: "Edit institution" },
+  addLibraryDesc: { ar: "أدخل بيانات المؤسسة واربطها بالمنطقة.", en: "Enter institution details and link it to a region." },
+  editLibraryDesc: { ar: "حدّث بيانات المؤسسة.", en: "Update this institution's details." },
   nameArLabel: { ar: "الاسم (عربي)", en: "Name (AR)" },
   nameEnLabel: { ar: "الاسم (English)", en: "Name (EN)" },
   cityLabel: { ar: "المدينة", en: "City" },
@@ -282,15 +286,15 @@ const dict = {
   services: { ar: "خدماتنا", en: "Services" },
   contact: { ar: "اتصل بنا", en: "Contact" },
   searchComplaintsPh: {
-    ar: "ابحث بالرقم، المنطقة، المكتبة، الموقع...",
-    en: "Search by ref, region, library, location...",
+    ar: "ابحث بالرقم، المنطقة، المؤسسة، الموقع...",
+    en: "Search by ref, region, institution, location...",
   },
   visitProof: { ar: "إثبات الزيارة", en: "Visit proof" },
   employeeName: { ar: "اسم الموظف", en: "Employee" },
   homeWorkflow: { ar: "كيف نعمل", en: "How we work" },
   homeWorkflowDesc: {
-    ar: "من الطلب إلى التسليم — ثلاث مراحل لخدمة المكتبات",
-    en: "From order to delivery — three stages serving libraries",
+    ar: "من الطلب إلى التسليم — ثلاث مراحل لخدمة المؤسسات",
+    en: "From order to delivery — three stages serving institutions",
   },
   homeStep1: { ar: "الاستشارة والتوريد", en: "Consult & supply" },
   homeStep2: { ar: "التركيب والتسليم", en: "Install & deliver" },
@@ -316,7 +320,11 @@ const dict = {
   viewOnMap: { ar: "عرض على الخريطة", en: "View on map" },
   photos: { ar: "الصور المرفقة", en: "Attached photos" },
   selectBranch: { ar: "اختر الفرع", en: "Select branch" },
-  selectLibrary: { ar: "اختر المكتبة", en: "Select library" },
+  selectLibrary: { ar: "اختر المؤسسة", en: "Select institution" },
+  homeContactIntro: {
+    ar: "تواصل معنا — فريقنا جاهز لخدمة مؤسستكم",
+    en: "Get in touch — our team is ready to serve your institution",
+  },
   imageHint: { ar: "اسحب الصور هنا أو انقر للاختيار", en: "Drag images here or click to browse" },
   notFound: { ar: "الصفحة غير موجودة", en: "Page not found" },
   notFoundDesc: { ar: "الصفحة التي تبحث عنها غير موجودة أو نُقلت.", en: "The page you're looking for doesn't exist or was moved." },
@@ -332,8 +340,8 @@ const dict = {
   contactAddress: { ar: "عمان — الأردن", en: "Amman — Jordan" },
   loading: { ar: "جاري التحميل...", en: "Loading..." },
   loadingDesc: {
-    ar: "توريد وتجهيز المكتبات في جميع أنحاء المملكة",
-    en: "Supplying and equipping libraries across Jordan",
+    ar: "توريد وتجهيز المؤسسات في جميع أنحاء المملكة",
+    en: "Supplying and equipping institutions across Jordan",
   },
 } as const;
 

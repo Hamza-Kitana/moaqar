@@ -186,14 +186,14 @@ function seed(): State {
   ];
 
   const libraries: Library[] = [
-    { id: "l1", nameAr: "مكتبة الجامعة", nameEn: "University Library", branchId: "b-amman", address: "الجبيهة - شارع الملكة رانيا" },
-    { id: "l2", nameAr: "مكتبة النور", nameEn: "Al-Noor Library", branchId: "b-amman", address: "الصويفية" },
-    { id: "l5", nameAr: "مكتبة المدينة", nameEn: "City Library", branchId: "b-amman", address: "وسط البلد - الدوار الرابع" },
-    { id: "l3", nameAr: "مكتبة عجلون المركزية", nameEn: "Ajloun Central Library", branchId: "b-ajloun", address: "وسط البلد" },
-    { id: "l6", nameAr: "مكتبة عنجرة", nameEn: "Anjara Library", branchId: "b-ajloun", address: "عنجرة" },
-    { id: "l4", nameAr: "مكتبة إربد الكبرى", nameEn: "Greater Irbid Library", branchId: "b-irbid", address: "شارع الحصن" },
-    { id: "l7", nameAr: "مكتبة اليرموك", nameEn: "Yarmouk Library", branchId: "b-irbid", address: "الحرم الجامعي" },
-    { id: "l8", nameAr: "مكتبة الحسن", nameEn: "Al-Hassan Library", branchId: "b-irbid", address: "حي الجامعة" },
+    { id: "l1", nameAr: "جامعة الأردنية", nameEn: "University of Jordan", branchId: "b-amman", address: "الجبيهة - شارع الملكة رانيا" },
+    { id: "l2", nameAr: "مدرسة النور الأهلية", nameEn: "Al-Noor Private School", branchId: "b-amman", address: "الصويفية" },
+    { id: "l5", nameAr: "مركز المدينة التجاري", nameEn: "City Business Centre", branchId: "b-amman", address: "وسط البلد - الدوار الرابع" },
+    { id: "l3", nameAr: "مؤسسة عجلون التعليمية", nameEn: "Ajloun Education Centre", branchId: "b-ajloun", address: "وسط البلد" },
+    { id: "l6", nameAr: "مدرسة عنجرة", nameEn: "Anjara School", branchId: "b-ajloun", address: "عنجرة" },
+    { id: "l4", nameAr: "جامعة اليرموك", nameEn: "Yarmouk University", branchId: "b-irbid", address: "شارع الجامعة" },
+    { id: "l7", nameAr: "مستشفى إربد الحكومي", nameEn: "Irbid Government Hospital", branchId: "b-irbid", address: "الحرم الجامعي" },
+    { id: "l8", nameAr: "مؤسسة الحسن الخيرية", nameEn: "Al-Hassan Charity", branchId: "b-irbid", address: "حي الجامعة" },
   ];
 
   const emp = (

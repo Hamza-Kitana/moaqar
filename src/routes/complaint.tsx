@@ -23,7 +23,7 @@ export const Route = createFileRoute("/complaint")({
   head: () => ({
     meta: [
       { title: "تقديم شكوى | شركة الموقر التجارية" },
-      { name: "description", content: "تقديم شكوى جديدة لمكتبتك عبر منصة الموقر التجارية." },
+      { name: "description", content: "تقديم شكوى جديدة لمؤسستكم عبر منصة الموقر التجارية." },
     ],
   }),
   component: ComplaintPage,
@@ -70,7 +70,7 @@ function ComplaintPage() {
                 return;
               }
               if (!branchId || !libraryId || !selectedLibrary) {
-                toast.error(lang === "ar" ? "يرجى اختيار الفرع والمكتبة" : "Please select branch & library");
+                toast.error(t("branchInstitutionRequired"));
                 return;
               }
               if (!notes.trim()) {
