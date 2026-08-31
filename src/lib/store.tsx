@@ -25,7 +25,19 @@ export type Account = {
   createdAt: string;
 };
 
-export type ComplaintStatus = "new" | "assigned" | "resolved";
+export type ComplaintStatus = "new" | "assigned" | "pending_review" | "closed";
+
+export type EmployeeReportOutcome = "resolved" | "unresolved";
+
+export type EmployeeReport = {
+  outcome: EmployeeReportOutcome;
+  note: string;
+  lat: number | null;
+  lng: number | null;
+  at: string;
+  by: string;
+  byId: string;
+};
 
 export type TimelineEntry = {
   at: string;
@@ -51,6 +63,7 @@ export type Complaint = {
   status: ComplaintStatus;
   assignedTo: string | null;
   readBy: string[];
+  employeeReport: EmployeeReport | null;
   resolution: { note: string; lat: number; lng: number; at: string; by: string } | null;
   resolvedBy: string | null;
   timeline: TimelineEntry[];
@@ -145,9 +158,17 @@ function migrateAccounts(parsed: LegacyAccount[] | undefined, base: Account[]): 
   return [...byId.values()];
 }
 
-function normalizeComplaint(c: Complaint): Complaint {
-  const status = (["new", "assigned", "resolved"].includes(c.status) ? c.status : "new") as ComplaintStatus;
-  return { ...c, status, resolvedBy: c.resolvedBy ?? null };
+function normalizeComplaint(c: Complaint & { status?: string }): Complaint {
+  let status = c.status;
+  if (status === "resolved") status = "closed";
+  const valid = ["new", "assigned", "pending_review", "closed"];
+  if (!valid.includes(status)) status = "new";
+  return {
+    ...c,
+    status: status as ComplaintStatus,
+    employeeReport: c.employeeReport ?? null,
+    resolvedBy: c.resolvedBy ?? null,
+  };
 }
 
 function hydrateState(raw: string | null): State {
@@ -254,6 +275,7 @@ function seed(): State {
       status: "new",
       assignedTo: null,
       readBy: [],
+      employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [{ at: ago(0, 2), by: "محمد العواملة", textAr: "تم تقديم الشكوى", textEn: "Complaint submitted" }],
@@ -275,6 +297,7 @@ function seed(): State {
       status: "assigned",
       assignedTo: "e1",
       readBy: ["e1"],
+      employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [
@@ -296,9 +319,18 @@ function seed(): State {
       createdByName: "أحمد الشمري",
       createdByPhone: "0791122334",
       createdAt: ago(2, 8),
-      status: "resolved",
+      status: "pending_review",
       assignedTo: "e2",
       readBy: ["e2", "a-super"],
+      employeeReport: {
+        outcome: "resolved",
+        note: "تم استبدال 6 كراسي وتركيب واقيات زوايا.",
+        lat: 31.9539,
+        lng: 35.855,
+        at: ago(0, 4),
+        by: "خالد الميداني",
+        byId: "e2",
+      },
       resolution: {
         note: "تم استبدال 6 كراسي وتركيب واقيات زوايا.",
         lat: 31.9539,
@@ -306,11 +338,11 @@ function seed(): State {
         at: ago(0, 4),
         by: "خالد الميداني",
       },
-      resolvedBy: "e2",
+      resolvedBy: null,
       timeline: [
         { at: ago(2, 8), by: "أحمد الشمري", textAr: "تم تقديم الشكوى", textEn: "Complaint submitted" },
         { at: ago(2, 4), by: "عبدالله المواقر", textAr: "تم توكيل الشكوى إلى خالد الميداني", textEn: "Assigned to Khaled Al-Maidani" },
-        { at: ago(0, 4), by: "خالد الميداني", textAr: "تم حل الشكوى", textEn: "Complaint resolved" },
+        { at: ago(0, 4), by: "خالد الميداني", textAr: "أبلغ الموظف عن حل المشكلة — بانتظار المراجعة", textEn: "Employee reported resolution — pending review" },
       ],
     },
     {
@@ -330,6 +362,7 @@ function seed(): State {
       status: "assigned",
       assignedTo: "e3",
       readBy: ["e3"],
+      employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [
@@ -354,6 +387,7 @@ function seed(): State {
       status: "new",
       assignedTo: null,
       readBy: [],
+      employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [{ at: ago(0, 6), by: "يزن الحسن", textAr: "تم تقديم الشكوى", textEn: "Complaint submitted" }],
@@ -375,6 +409,7 @@ function seed(): State {
       status: "assigned",
       assignedTo: "e5",
       readBy: ["e5"],
+      employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [
@@ -399,6 +434,7 @@ function seed(): State {
       status: "new",
       assignedTo: null,
       readBy: [],
+      employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [{ at: ago(0, 8), by: "باسل الشريف", textAr: "تم تقديم الشكوى", textEn: "Complaint submitted" }],
@@ -417,9 +453,18 @@ function seed(): State {
       createdByName: "غادة النجار",
       createdByPhone: "0796677889",
       createdAt: ago(5, 6),
-      status: "resolved",
+      status: "closed",
       assignedTo: "e6",
       readBy: ["e6", "a-super"],
+      employeeReport: {
+        outcome: "resolved",
+        note: "تم عزل السقف ونقل الأرشيف المتضرر.",
+        lat: 32.5556,
+        lng: 35.85,
+        at: ago(2, 1),
+        by: "يزن النابلسي",
+        byId: "e6",
+      },
       resolution: {
         note: "تم عزل السقف ونقل الأرشيف المتضرر.",
         lat: 32.5556,
@@ -492,6 +537,7 @@ type Ctx = {
       | "status"
       | "assignedTo"
       | "readBy"
+      | "employeeReport"
       | "resolution"
       | "resolvedBy"
       | "timeline"
@@ -499,11 +545,15 @@ type Ctx = {
   ) => string;
   markRead: (complaintId: string) => void;
   assignComplaint: (complaintId: string, employeeId: string) => void;
-  resolveComplaint: (
+  submitEmployeeReport: (
     complaintId: string,
+    outcome: EmployeeReportOutcome,
     note: string,
     coords: { lat: number; lng: number } | null,
   ) => void;
+  approveComplaint: (complaintId: string) => void;
+  returnComplaint: (complaintId: string, note: string, employeeId?: string) => void;
+  deleteComplaint: (complaintId: string) => boolean;
   upsertEmployee: (a: Partial<Account> & { id?: string }) => void;
   updateSuperProfile: (data: {
     name: string;
@@ -696,6 +746,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           status: "new",
           assignedTo: null,
           readBy: [],
+          employeeReport: null,
           resolution: null,
           resolvedBy: null,
           timeline: [
@@ -730,19 +781,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }),
     assignComplaint: (complaintId, employeeId) =>
       patchComplaint(complaintId, (c, s) => {
+        if (c.status === "closed") return { complaint: c };
         const emp = s.accounts.find((a) => a.id === employeeId);
+        const reassign = Boolean(c.assignedTo && c.assignedTo !== employeeId);
         return {
           complaint: {
             ...c,
             assignedTo: employeeId,
-            status: c.status === "resolved" ? "resolved" : "assigned",
+            status: "assigned",
+            employeeReport: null,
+            resolution: null,
+            resolvedBy: null,
             timeline: [
               ...c.timeline,
               {
                 at: now(),
                 by: me?.name ?? "",
-                textAr: `تم توكيل الشكوى إلى ${emp?.name ?? ""}`,
-                textEn: `Assigned to ${emp?.name ?? ""}`,
+                textAr: reassign
+                  ? `تم إعادة توكيل الشكوى إلى ${emp?.name ?? ""}`
+                  : `تم توكيل الشكوى إلى ${emp?.name ?? ""}`,
+                textEn: reassign
+                  ? `Reassigned to ${emp?.name ?? ""}`
+                  : `Assigned to ${emp?.name ?? ""}`,
               },
             ],
           },
@@ -751,52 +811,151 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           textEn: `You were assigned complaint ${c.ref}`,
         };
       }),
-    resolveComplaint: (complaintId, note, coords) =>
+    submitEmployeeReport: (complaintId, outcome, note, coords) =>
       patchComplaint(complaintId, (c, s) => {
-        if (c.status === "resolved" || !me) return { complaint: c };
+        if (!me || isSuper || c.status !== "assigned" || c.assignedTo !== me.id) return { complaint: c };
+        const trimmed = note.trim();
+        if (!trimmed) return { complaint: c };
+        if (outcome === "resolved" && !coords) return { complaint: c };
 
-        const canResolveSuper = isSuper;
-        const canResolveEmployee = !isSuper && c.assignedTo === me.id;
-        if (!canResolveSuper && !canResolveEmployee) return { complaint: c };
-        if (canResolveEmployee && !coords) return { complaint: c };
+        const report: EmployeeReport = {
+          outcome,
+          note: trimmed,
+          lat: coords?.lat ?? null,
+          lng: coords?.lng ?? null,
+          at: now(),
+          by: me.name,
+          byId: me.id,
+        };
 
-        const resolution = coords
-          ? { note, lat: coords.lat, lng: coords.lng, at: now(), by: me.name }
-          : {
-              note,
-              lat: BRANCH_COORDS[c.branchId]?.lat ?? 0,
-              lng: BRANCH_COORDS[c.branchId]?.lng ?? 0,
-              at: now(),
-              by: me.name,
-            };
+        const resolution =
+          outcome === "resolved" && coords
+            ? { note: trimmed, lat: coords.lat, lng: coords.lng, at: now(), by: me.name }
+            : null;
 
         const supers = s.accounts.filter((a) => a.kind === "super" && a.active).map((a) => a.id);
 
         return {
           complaint: {
             ...c,
-            status: "resolved",
-            resolvedBy: me.id,
+            status: "pending_review",
+            employeeReport: report,
+            resolution,
             timeline: [
               ...c.timeline,
               {
                 at: now(),
                 by: me.name,
-                textAr: isSuper ? "تم إغلاق الشكوى" : "تم حل المشكلة",
-                textEn: isSuper ? "Complaint closed" : "Issue resolved",
+                textAr:
+                  outcome === "resolved"
+                    ? "أبلغ الموظف عن حل المشكلة — بانتظار المراجعة"
+                    : "أبلغ الموظف بعدم حل المشكلة — بانتظار المراجعة",
+                textEn:
+                  outcome === "resolved"
+                    ? "Employee reported resolution — pending review"
+                    : "Employee reported unresolved — pending review",
               },
             ],
-            resolution,
           },
-          ...(canResolveEmployee && supers.length
+          notifyTo: supers,
+          textAr:
+            outcome === "resolved"
+              ? `تقرير حل — ${c.ref} — ${me.name}`
+              : `تقرير عدم حل — ${c.ref} — ${me.name}`,
+          textEn:
+            outcome === "resolved"
+              ? `Resolution report — ${c.ref} — ${me.name}`
+              : `Unresolved report — ${c.ref} — ${me.name}`,
+        };
+      }),
+    approveComplaint: (complaintId) =>
+      patchComplaint(complaintId, (c) => {
+        if (!isSuper || !me || c.status !== "pending_review" || !c.employeeReport) return { complaint: c };
+
+        const report = c.employeeReport;
+        const branchCoords = BRANCH_COORDS[c.branchId];
+        const resolution =
+          c.resolution ??
+          (report.lat != null && report.lng != null
+            ? { note: report.note, lat: report.lat, lng: report.lng, at: report.at, by: report.by }
+            : {
+                note: report.note,
+                lat: branchCoords?.lat ?? 0,
+                lng: branchCoords?.lng ?? 0,
+                at: report.at,
+                by: report.by,
+              });
+
+        return {
+          complaint: {
+            ...c,
+            status: "closed",
+            resolvedBy: me.id,
+            resolution,
+            timeline: [
+              ...c.timeline,
+              {
+                at: now(),
+                by: me.name,
+                textAr: "تم اعتماد التقرير وإغلاق الشكوى",
+                textEn: "Report approved and complaint closed",
+              },
+            ],
+          },
+          ...(c.assignedTo
             ? {
-                notifyTo: supers,
-                textAr: `تم حل الشكوى ${c.ref} — ${me.name}`,
-                textEn: `Complaint ${c.ref} resolved by ${me.name}`,
+                notifyTo: [c.assignedTo],
+                textAr: `تم إغلاق الشكوى ${c.ref}`,
+                textEn: `Complaint ${c.ref} closed`,
               }
             : {}),
         };
       }),
+    returnComplaint: (complaintId, note, employeeId) =>
+      patchComplaint(complaintId, (c, s) => {
+        if (!isSuper || !me || c.status !== "pending_review") return { complaint: c };
+        const targetId = employeeId ?? c.assignedTo;
+        if (!targetId) return { complaint: c };
+        const emp = s.accounts.find((a) => a.id === targetId);
+        const trimmed = note.trim();
+
+        return {
+          complaint: {
+            ...c,
+            status: "assigned",
+            assignedTo: targetId,
+            employeeReport: null,
+            resolution: null,
+            resolvedBy: null,
+            timeline: [
+              ...c.timeline,
+              {
+                at: now(),
+                by: me.name,
+                textAr: trimmed
+                  ? `أُعيدت الشكوى إلى ${emp?.name ?? ""}: ${trimmed}`
+                  : `أُعيدت الشكوى إلى ${emp?.name ?? ""}`,
+                textEn: trimmed
+                  ? `Returned to ${emp?.name ?? ""}: ${trimmed}`
+                  : `Returned to ${emp?.name ?? ""}`,
+              },
+            ],
+          },
+          notifyTo: [targetId],
+          textAr: `أُعيدت إليك الشكوى ${c.ref}`,
+          textEn: `Complaint ${c.ref} returned to you`,
+        };
+      }),
+    deleteComplaint: (complaintId) => {
+      if (!isSuper) return false;
+      let ok = false;
+      setState((s) => {
+        if (!s.complaints.some((c) => c.id === complaintId)) return s;
+        ok = true;
+        return { ...s, complaints: s.complaints.filter((c) => c.id !== complaintId) };
+      });
+      return ok;
+    },
     updateSuperProfile: (data) => {
       if (!me || me.kind !== "super") return "forbidden";
       const username = data.username.trim();
@@ -865,7 +1024,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ...s,
           accounts: s.accounts.filter((a) => a.id !== id),
           complaints: s.complaints.map((c) =>
-            c.assignedTo === id ? { ...c, assignedTo: null, status: c.status === "assigned" ? "new" : c.status } : c,
+            c.assignedTo === id
+              ? {
+                  ...c,
+                  assignedTo: null,
+                  employeeReport: null,
+                  status: c.status === "assigned" || c.status === "pending_review" ? "new" : c.status,
+                }
+              : c,
           ),
         };
       });
@@ -937,9 +1103,13 @@ export function assignableEmployees(ctx: Ctx): Account[] {
   return ctx.activeEmployees;
 }
 
-/** For field employees: assigned tasks appear as "new", not "assigned". */
-export function employeeDisplayStatus(status: ComplaintStatus): "new" | "resolved" {
-  return status === "resolved" ? "resolved" : "new";
+/** For field employees: map internal status to simplified labels. */
+export function employeeDisplayStatus(
+  status: ComplaintStatus,
+): "new" | "pending_review" | "closed" {
+  if (status === "closed") return "closed";
+  if (status === "pending_review") return "pending_review";
+  return "new";
 }
 
 export function matchesEmployeeStatusFilter(
@@ -947,9 +1117,10 @@ export function matchesEmployeeStatusFilter(
   filter: ComplaintStatus | "all",
 ): boolean {
   if (filter === "all") return true;
-  if (filter === "resolved") return complaint.status === "resolved";
-  if (filter === "new") return complaint.status !== "resolved";
-  return false;
+  if (filter === "closed") return complaint.status === "closed";
+  if (filter === "pending_review") return complaint.status === "pending_review";
+  if (filter === "assigned" || filter === "new") return complaint.status === "assigned";
+  return complaint.status === filter;
 }
 
 export function countEmployeeStatusFilter(

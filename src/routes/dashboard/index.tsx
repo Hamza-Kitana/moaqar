@@ -18,7 +18,8 @@ function DashboardOverview() {
   const complaints = useMemo(() => visibleComplaints(store), [store.state, store.me, store.isSuper]);
 
   const openTasks = complaints.filter((c) => c.status === "assigned");
-  const resolvedTasks = complaints.filter((c) => c.status === "resolved");
+  const pendingTasks = complaints.filter((c) => c.status === "pending_review");
+  const closedTasks = complaints.filter((c) => c.status === "closed");
 
   const superStats = [
     {
@@ -41,7 +42,7 @@ function DashboardOverview() {
     },
   ];
 
-  const open = complaints.filter((c) => c.status !== "resolved");
+  const open = complaints.filter((c) => c.status !== "closed");
   const recent = complaints.slice(0, 5);
 
   return (
@@ -106,7 +107,7 @@ function DashboardOverview() {
             <div className="flex items-center justify-between gap-1">
               <ClipboardList className="size-4 shrink-0 text-success sm:size-5" />
               <span className="font-display text-xl font-bold tabular-nums text-success sm:text-3xl">
-                {resolvedTasks.length}
+                {closedTasks.length}
               </span>
             </div>
             <p className="mt-1.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground group-hover:text-foreground sm:mt-3 sm:line-clamp-none sm:text-sm">
@@ -122,21 +123,25 @@ function DashboardOverview() {
           <p className="mt-1 text-3xl font-bold text-primary">{open.length}</p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
             {(isSuper
-              ? (["new", "assigned", "resolved"] as const)
-              : (["new", "resolved"] as const)
+              ? (["new", "assigned", "pending_review", "closed"] as const)
+              : (["assigned", "pending_review", "closed"] as const)
             ).map((st) => {
               const count = isSuper
                 ? complaints.filter((c) => c.status === st).length
-                : st === "new"
-                  ? complaints.filter((c) => c.status !== "resolved").length
-                  : complaints.filter((c) => c.status === "resolved").length;
+                : st === "assigned"
+                  ? openTasks.length
+                  : st === "pending_review"
+                    ? pendingTasks.length
+                    : closedTasks.length;
+              const label =
+                !isSuper && st === "assigned" ? t("st_new") : t(`st_${st}` as "st_new");
               return (
               <Link
                 key={st}
                 to="/dashboard/complaints"
                 className="rounded-full bg-secondary px-3 py-2 text-xs touch-manipulation transition-colors hover:bg-primary/20 active:scale-[0.98]"
               >
-                {count} — {t(`st_${st}` as "st_new")}
+                {count} — {label}
               </Link>
             );
             })}

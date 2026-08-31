@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Briefcase, Building2, Calendar, Check, ChevronLeft, ChevronRight, Inbox, Loader2, MapPin, Phone, Search, User, UserCog } from "lucide-react";
+import { Briefcase, Building2, Calendar, Check, ChevronLeft, ChevronRight, CircleX, Inbox, Loader2, MapPin, Phone, RotateCcw, Search, ShieldCheck, Trash2, User, UserCog } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,6 +7,7 @@ import { ComplaintTimeline } from "@/components/dashboard/ComplaintTimeline";
 import { LocationMap } from "@/components/dashboard/LocationMap";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { WorkflowSteps } from "@/components/dashboard/WorkflowSteps";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -43,6 +44,7 @@ import {
   visibleComplaints,
   type Complaint,
   type ComplaintStatus,
+  type EmployeeReportOutcome,
 } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -56,8 +58,14 @@ export const Route = createFileRoute("/dashboard/complaints")({
   component: ComplaintsPage,
 });
 
-const ADMIN_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "assigned", "resolved"];
-const EMPLOYEE_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "resolved"];
+const ADMIN_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "assigned", "pending_review", "closed"];
+const EMPLOYEE_FILTERS: Array<ComplaintStatus | "all"> = ["all", "assigned", "pending_review", "closed"];
+
+function statusFilterLabel(f: ComplaintStatus | "all", isSuper: boolean, t: (k: TKey) => string) {
+  if (f === "all") return t("filterAll");
+  if (!isSuper && f === "assigned") return t("st_new");
+  return t(`st_${f}` as "st_new");
+}
 
 type ComplaintCardProps = {
   c: Complaint;
@@ -163,7 +171,7 @@ function ComplaintsPage() {
   const store = useStore();
   const navigate = Route.useNavigate();
   const { region: regionParam } = Route.useSearch();
-  const { me, state, isSuper, markRead, assignComplaint, resolveComplaint } = store;
+  const { me, state, isSuper, markRead, assignComplaint, submitEmployeeReport, approveComplaint, returnComplaint, deleteComplaint } = store;
 
   const list = useMemo(() => visibleComplaints(store), [store.state, store.me, store.isSuper]);
   const regionFilter =
@@ -175,8 +183,11 @@ function ComplaintsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [assignTo, setAssignTo] = useState("");
   const [resolutionNote, setResolutionNote] = useState("");
+  const [employeeOutcome, setEmployeeOutcome] = useState<EmployeeReportOutcome>("resolved");
+  const [returnNote, setReturnNote] = useState("");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const regionList = regionFilter === "all" ? list : list.filter((c) => c.branchId === regionFilter);
 
@@ -254,6 +265,8 @@ function ComplaintsPage() {
   const openDetail = (c: Complaint) => {
     setSelectedId(c.id);
     setResolutionNote("");
+    setEmployeeOutcome("resolved");
+    setReturnNote("");
     setCoords(null);
     setLocationLoading(false);
     setDetailOpen(true);
@@ -291,7 +304,7 @@ function ComplaintsPage() {
       ? groups
       : [{ branch: null as (typeof groups)[0]["branch"] | null, items: filtered }];
 
-  const openCount = (items: Complaint[]) => items.filter((c) => c.status !== "resolved").length;
+  const openCount = (items: Complaint[]) => items.filter((c) => c.status !== "closed").length;
 
   return (
     <div className="rise-in flex flex-col gap-3 sm:gap-4">
@@ -391,7 +404,7 @@ function ComplaintsPage() {
               )}
             >
               <span className="max-w-[7rem] truncate sm:max-w-none">
-                {f === "all" ? t("filterAll") : t(`st_${f}` as "st_new")}
+                {statusFilterLabel(f, isSuper, t)}
               </span>
               <span
                 className={cn(
@@ -573,22 +586,63 @@ function ComplaintsPage() {
                 assignComplaint(selected.id, assignTo);
                 toast.success(selected.assignedTo ? t("changeAssignee") : t("assign"));
               }}
-              onResolve={() => {
+              onSubmitReport={() => {
                 if (!resolutionNote.trim()) {
-                  toast.error(lang === "ar" ? "اكتب ما تم عمله" : "Enter resolution notes");
+                  toast.error(
+                    employeeOutcome === "resolved"
+                      ? lang === "ar"
+                        ? "اكتب ما تم عمله"
+                        : "Enter resolution notes"
+                      : t("unresolvedReason"),
+                  );
                   return;
                 }
-                if (!isSuper && !coords) {
+                if (employeeOutcome === "resolved" && !coords) {
                   toast.error(t("locationRequired"));
                   return;
                 }
-                resolveComplaint(selected.id, resolutionNote.trim(), coords);
-                toast.success(isSuper ? t("superClose") : t("markResolved"));
+                submitEmployeeReport(selected.id, employeeOutcome, resolutionNote.trim(), coords);
+                toast.success(t("reportSent"));
               }}
+              onApprove={() => {
+                approveComplaint(selected.id);
+                toast.success(t("complaintClosed"));
+              }}
+              onReturn={() => {
+                const target = assignTo || selected.assignedTo;
+                if (!target) return;
+                returnComplaint(selected.id, returnNote.trim(), assignTo !== selected.assignedTo ? assignTo : undefined);
+                toast.success(t("complaintReturned"));
+              }}
+              employeeOutcome={employeeOutcome}
+              setEmployeeOutcome={setEmployeeOutcome}
+              returnNote={returnNote}
+              setReturnNote={setReturnNote}
+              onDelete={() => setDeleteOpen(true)}
             />
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={t("confirmDeleteTitle")}
+        description={t("deleteComplaintConfirm")}
+        itemName={selected?.ref}
+        confirmLabel={t("deleteComplaint")}
+        onConfirm={() => {
+          if (!selected) return;
+          if (deleteComplaint(selected.id)) {
+            toast.success(t("complaintDeleted"));
+            setDeleteOpen(false);
+            closeDetail();
+            setSelectedId(null);
+          } else {
+            toast.error(t("deleteFailed"));
+          }
+        }}
+      />
     </div>
   );
 }
@@ -605,12 +659,60 @@ type DetailProps = {
   employees: ReturnType<typeof useStore>["state"]["accounts"];
   resolutionNote: string;
   setResolutionNote: (v: string) => void;
+  employeeOutcome: EmployeeReportOutcome;
+  setEmployeeOutcome: (v: EmployeeReportOutcome) => void;
+  returnNote: string;
+  setReturnNote: (v: string) => void;
   coords: { lat: number; lng: number } | null;
   locationLoading: boolean;
   captureLocation: () => void;
   onAssign: () => void;
-  onResolve: () => void;
+  onSubmitReport: () => void;
+  onApprove: () => void;
+  onReturn: () => void;
+  onDelete?: () => void;
 };
+
+function OutcomeToggle({
+  value,
+  onChange,
+  t,
+}: {
+  value: EmployeeReportOutcome;
+  onChange: (v: EmployeeReportOutcome) => void;
+  t: DetailProps["t"];
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => onChange("resolved")}
+        className={cn(
+          "flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition-colors touch-manipulation",
+          value === "resolved"
+            ? "border-success/40 bg-success/10 text-success"
+            : "border-border bg-secondary/30 text-muted-foreground hover:bg-secondary/50",
+        )}
+      >
+        <Check className="size-4" />
+        {t("outcomeResolved")}
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("unresolved")}
+        className={cn(
+          "flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition-colors touch-manipulation",
+          value === "unresolved"
+            ? "border-destructive/40 bg-destructive/10 text-destructive"
+            : "border-border bg-secondary/30 text-muted-foreground hover:bg-secondary/50",
+        )}
+      >
+        <CircleX className="size-4" />
+        {t("outcomeUnresolved")}
+      </button>
+    </div>
+  );
+}
 
 function ComplaintDetail({
   complaint: c,
@@ -624,45 +726,58 @@ function ComplaintDetail({
   employees,
   resolutionNote,
   setResolutionNote,
+  employeeOutcome,
+  setEmployeeOutcome,
+  returnNote,
+  setReturnNote,
   coords,
   locationLoading,
   captureLocation,
   onAssign,
-  onResolve,
+  onSubmitReport,
+  onApprove,
+  onReturn,
+  onDelete,
 }: DetailProps) {
   const lib = state.libraries.find((l) => l.id === c.libraryId);
   const branch = state.branches.find((b) => b.id === c.branchId);
   const assignee = c.assignedTo ? state.accounts.find((a) => a.id === c.assignedTo) : null;
   const complainantPhone = complaintComplainantPhone(c);
-  const canResolveSuper = isSuper && c.status !== "resolved";
-  const canResolveEmployee =
-    !isSuper && !!meId && c.assignedTo === meId && c.status !== "resolved";
-  const canResolve = canResolveSuper || canResolveEmployee;
-  const canAssign = isSuper && c.status !== "resolved";
-  const hasActions = canAssign || canResolve;
+  const isClosed = c.status === "closed";
+  const canAssign = isSuper && !isClosed && c.status !== "pending_review";
+  const canSubmitReport =
+    !isSuper && !!meId && c.assignedTo === meId && c.status === "assigned";
+  const canReview = isSuper && c.status === "pending_review";
+  const awaitingReview = !isSuper && c.status === "pending_review" && c.assignedTo === meId;
+  const report = c.employeeReport;
 
   return (
     <>
-      <DialogHeader className="shrink-0 border-b border-border/70 bg-secondary/40 px-5 py-4 pe-14 sm:px-6 sm:py-5">
-        <div className="min-w-0 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={c.status} employeeView={!isSuper} />
-            <DialogDescription className="m-0 font-mono text-xs font-semibold text-primary">
+      <DialogHeader className="shrink-0 border-b border-border/70 bg-gradient-to-b from-secondary/70 to-secondary/30 px-5 py-5 pe-14 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <DialogDescription className="m-0 font-mono text-[11px] font-semibold tracking-wide text-primary">
               {c.ref}
             </DialogDescription>
+            <DialogTitle className="text-start text-lg font-bold leading-snug sm:text-xl">
+              {lib ? (lang === "ar" ? lib.nameAr : lib.nameEn) : "—"}
+            </DialogTitle>
+            {branch && (
+              <p className="text-xs text-muted-foreground">
+                {lang === "ar" ? branch.nameAr : branch.nameEn}
+              </p>
+            )}
           </div>
-          <DialogTitle className="text-start text-lg font-bold leading-snug">
-            {lib ? (lang === "ar" ? lib.nameAr : lib.nameEn) : "—"}
-          </DialogTitle>
+          <StatusBadge status={c.status} employeeView={!isSuper} />
         </div>
-        <div className="mt-4 rounded-xl bg-secondary/60 px-3 py-3">
+        <div className="mt-4">
           <WorkflowSteps status={c.status} employeeView={!isSuper} />
         </div>
       </DialogHeader>
 
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card px-4 py-3">
+          <div className="rounded-xl border border-border/70 bg-card px-4 py-3 shadow-sm">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
               <User className="size-3.5 text-primary" />
               {t("complainant")}
@@ -680,7 +795,7 @@ function ComplaintDetail({
             </p>
           </div>
           {isSuper && (
-            <div className="rounded-xl border border-border bg-card px-4 py-3">
+            <div className="rounded-xl border border-border/70 bg-card px-4 py-3 shadow-sm">
               <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
                 <UserCog className="size-3.5 text-primary" />
                 {t("assignedEmployee")}
@@ -733,7 +848,7 @@ function ComplaintDetail({
               </div>
             );
           })()}
-          {c.resolution ? (
+          {c.resolution && c.resolution.lat && c.resolution.lng ? (
             <LocationMap
               title={t("employeeLocation")}
               subtitle={c.resolution.by}
@@ -769,18 +884,115 @@ function ComplaintDetail({
           </div>
         )}
 
-        {c.resolution && (
-          <div className="rounded-xl border border-success/25 bg-success/10 p-4">
-            <p className="text-xs font-semibold text-success">{t("visitProof")}</p>
-            <p className="mt-2 text-sm leading-relaxed">{c.resolution.note}</p>
+        {report && (
+          <div
+            className={cn(
+              "rounded-xl border p-4",
+              report.outcome === "resolved"
+                ? "border-success/25 bg-success/10"
+                : "border-destructive/25 bg-destructive/5",
+            )}
+          >
+            <p
+              className={cn(
+                "text-xs font-semibold",
+                report.outcome === "resolved" ? "text-success" : "text-destructive",
+              )}
+            >
+              {t("employeeReportTitle")} —{" "}
+              {report.outcome === "resolved" ? t("outcomeResolved") : t("outcomeUnresolved")}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed">{report.note}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {c.resolution.by} · {new Date(c.resolution.at).toLocaleString(lang === "ar" ? "ar-JO" : "en-GB")}
+              {report.by} · {new Date(report.at).toLocaleString(lang === "ar" ? "ar-JO" : "en-GB")}
             </p>
           </div>
         )}
 
-        {hasActions && (
-          <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+        {awaitingReview && (
+          <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-muted-foreground">
+            {t("awaitingSuperReview")}
+          </div>
+        )}
+
+        {canSubmitReport && (
+          <div className="space-y-4 rounded-xl border border-border/70 bg-card p-4 shadow-sm">
+            <div>
+              <Label className="text-xs">{t("visitOutcome")}</Label>
+              <div className="mt-2">
+                <OutcomeToggle value={employeeOutcome} onChange={setEmployeeOutcome} t={t} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>
+                {employeeOutcome === "resolved" ? t("resolutionNote") : t("unresolvedReason")}
+              </Label>
+              <Textarea
+                value={resolutionNote}
+                onChange={(e) => setResolutionNote(e.target.value)}
+                rows={3}
+                placeholder={
+                  employeeOutcome === "resolved"
+                    ? lang === "ar"
+                      ? "اشرح ما تم عمله..."
+                      : "Describe what was done..."
+                    : lang === "ar"
+                      ? "لماذا لم تُحل المشكلة؟"
+                      : "Why could the issue not be resolved?"
+                }
+              />
+            </div>
+            {employeeOutcome === "resolved" && (
+              <>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={captureLocation}
+                  disabled={locationLoading}
+                  className="w-full gap-2 touch-manipulation sm:w-auto"
+                >
+                  {locationLoading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : coords ? (
+                    <Check className="size-4 text-success" />
+                  ) : (
+                    <MapPin className="size-4" />
+                  )}
+                  {locationLoading ? t("locatingPosition") : coords ? t("locationCaptured") : t("attachLocation")}
+                </Button>
+                {!coords && <p className="text-xs text-muted-foreground">{t("locationRequired")}</p>}
+                {coords && (
+                  <LocationMap
+                    lat={coords.lat}
+                    lng={coords.lng}
+                    title={t("employeeLocation")}
+                    mapLabel={t("viewOnMap")}
+                    mapClassName="aspect-[16/9]"
+                  />
+                )}
+              </>
+            )}
+            <Button className="w-full touch-manipulation" onClick={onSubmitReport} disabled={locationLoading}>
+              {employeeOutcome === "resolved" ? t("markResolved") : t("markUnresolved")}
+            </Button>
+          </div>
+        )}
+
+        {(canAssign || canReview) && (
+          <div className="space-y-4 rounded-xl border border-border/70 bg-card p-4 shadow-sm">
+            {canReview && (
+              <div className="space-y-3 border-b border-border/60 pb-4">
+                <div>
+                  <p className="text-sm font-bold">{t("superReviewTitle")}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("superReviewDesc")}</p>
+                </div>
+                <Button className="w-full gap-2 touch-manipulation sm:w-auto" onClick={onApprove}>
+                  <ShieldCheck className="size-4" />
+                  {t("approveClose")}
+                </Button>
+              </div>
+            )}
+
             {canAssign && (
               <div className="space-y-2">
                 <Label>{c.assignedTo ? t("changeAssignee") : t("assign")}</Label>
@@ -808,58 +1020,50 @@ function ComplaintDetail({
               </div>
             )}
 
-            {canResolve && (
+            {canReview && (
               <div className="space-y-3">
-                <Label>{t("resolutionNote")}</Label>
-                <Textarea value={resolutionNote} onChange={(e) => setResolutionNote(e.target.value)} rows={3} />
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={captureLocation}
-                    disabled={locationLoading}
-                    aria-busy={locationLoading}
-                    className={cn(
-                      "gap-2 touch-manipulation transition-all sm:min-w-[12rem]",
-                      locationLoading && "pointer-events-none opacity-90",
-                    )}
-                  >
-                    {locationLoading ? (
-                      <Loader2 className="size-4 shrink-0 animate-spin" />
-                    ) : coords ? (
-                      <Check className="size-4 shrink-0 text-success" />
-                    ) : (
-                      <MapPin className="size-4 shrink-0" />
-                    )}
-                    {locationLoading ? t("locatingPosition") : coords ? t("locationCaptured") : t("attachLocation")}
-                  </Button>
-                  <Button className="flex-1 touch-manipulation" onClick={onResolve} disabled={locationLoading}>
-                    {isSuper ? t("superClose") : t("markResolved")}
-                  </Button>
+                <Label>{t("returnNote")}</Label>
+                <Textarea
+                  value={returnNote}
+                  onChange={(e) => setReturnNote(e.target.value)}
+                  rows={2}
+                  placeholder={lang === "ar" ? "ملاحظات للموظf..." : "Notes for the employee..."}
+                />
+                <div className="space-y-2">
+                  <Label>{t("reassignEmployee")}</Label>
+                  <Select value={assignTo} onValueChange={setAssignTo}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("employeeName")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>
+                          {e.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                {canResolveEmployee && !coords && (
-                  <p className="text-xs text-muted-foreground">{t("locationRequired")}</p>
-                )}
-                {locationLoading && (
-                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="relative flex size-2 shrink-0">
-                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/40" />
-                      <span className="relative inline-flex size-2 rounded-full bg-primary" />
-                    </span>
-                    {t("locatingPositionHint")}
-                  </p>
-                )}
-                {coords && (
-                  <LocationMap
-                    lat={coords.lat}
-                    lng={coords.lng}
-                    title={t("employeeLocation")}
-                    mapLabel={t("viewOnMap")}
-                    mapClassName="aspect-[16/9]"
-                  />
-                )}
+                <Button variant="secondary" className="w-full gap-2 touch-manipulation" onClick={onReturn}>
+                  <RotateCcw className="size-4" />
+                  {assignTo && assignTo !== c.assignedTo ? t("reassignEmployee") : t("returnToEmployee")}
+                </Button>
               </div>
             )}
+          </div>
+        )}
+
+        {isSuper && onDelete && (
+          <div className="border-t border-border/60 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive touch-manipulation"
+              onClick={onDelete}
+            >
+              <Trash2 className="size-4" />
+              {t("deleteComplaint")}
+            </Button>
           </div>
         )}
 
