@@ -752,27 +752,49 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         };
       }),
     resolveComplaint: (complaintId, note, coords) =>
-      patchComplaint(complaintId, (c) => {
-        if (!isSuper || c.status === "resolved") return { complaint: c };
+      patchComplaint(complaintId, (c, s) => {
+        if (c.status === "resolved" || !me) return { complaint: c };
+
+        const canResolveSuper = isSuper;
+        const canResolveEmployee = !isSuper && c.assignedTo === me.id;
+        if (!canResolveSuper && !canResolveEmployee) return { complaint: c };
+        if (canResolveEmployee && !coords) return { complaint: c };
+
         const resolution = coords
-          ? { note, lat: coords.lat, lng: coords.lng, at: now(), by: me?.name ?? "" }
-          : { note, lat: BRANCH_COORDS[c.branchId]?.lat ?? 0, lng: BRANCH_COORDS[c.branchId]?.lng ?? 0, at: now(), by: me?.name ?? "" };
+          ? { note, lat: coords.lat, lng: coords.lng, at: now(), by: me.name }
+          : {
+              note,
+              lat: BRANCH_COORDS[c.branchId]?.lat ?? 0,
+              lng: BRANCH_COORDS[c.branchId]?.lng ?? 0,
+              at: now(),
+              by: me.name,
+            };
+
+        const supers = s.accounts.filter((a) => a.kind === "super" && a.active).map((a) => a.id);
+
         return {
           complaint: {
             ...c,
             status: "resolved",
-            resolvedBy: me?.id ?? null,
+            resolvedBy: me.id,
             timeline: [
               ...c.timeline,
               {
                 at: now(),
-                by: me?.name ?? "",
-                textAr: "تم إغلاق الشكوى",
-                textEn: "Complaint closed",
+                by: me.name,
+                textAr: isSuper ? "تم إغلاق الشكوى" : "تم حل المشكلة",
+                textEn: isSuper ? "Complaint closed" : "Issue resolved",
               },
             ],
             resolution,
           },
+          ...(canResolveEmployee && supers.length
+            ? {
+                notifyTo: supers,
+                textAr: `تم حل الشكوى ${c.ref} — ${me.name}`,
+                textEn: `Complaint ${c.ref} resolved by ${me.name}`,
+              }
+            : {}),
         };
       }),
     updateSuperProfile: (data) => {

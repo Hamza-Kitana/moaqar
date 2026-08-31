@@ -578,8 +578,12 @@ function ComplaintsPage() {
                   toast.error(lang === "ar" ? "اكتب ما تم عمله" : "Enter resolution notes");
                   return;
                 }
+                if (!isSuper && !coords) {
+                  toast.error(t("locationRequired"));
+                  return;
+                }
                 resolveComplaint(selected.id, resolutionNote.trim(), coords);
-                toast.success(t("superClose"));
+                toast.success(isSuper ? t("superClose") : t("markResolved"));
               }}
             />
           )}
@@ -631,10 +635,11 @@ function ComplaintDetail({
   const assignee = c.assignedTo ? state.accounts.find((a) => a.id === c.assignedTo) : null;
   const complainantPhone = complaintComplainantPhone(c);
   const canResolveSuper = isSuper && c.status !== "resolved";
+  const canResolveEmployee =
+    !isSuper && !!meId && c.assignedTo === meId && c.status !== "resolved";
+  const canResolve = canResolveSuper || canResolveEmployee;
   const canAssign = isSuper && c.status !== "resolved";
-  const hasActions = canAssign || canResolveSuper;
-  const showEmployeeCloseHint =
-    !isSuper && c.assignedTo === meId && c.status === "assigned";
+  const hasActions = canAssign || canResolve;
 
   return (
     <>
@@ -774,12 +779,6 @@ function ComplaintDetail({
           </div>
         )}
 
-        {showEmployeeCloseHint && (
-          <div className="rounded-xl border border-border/70 bg-secondary/30 px-4 py-3 text-sm text-muted-foreground">
-            {t("superCloseOnly")}
-          </div>
-        )}
-
         {hasActions && (
           <div className="space-y-3 rounded-xl border border-border bg-card p-4">
             {canAssign && (
@@ -809,7 +808,7 @@ function ComplaintDetail({
               </div>
             )}
 
-            {canResolveSuper && (
+            {canResolve && (
               <div className="space-y-3">
                 <Label>{t("resolutionNote")}</Label>
                 <Textarea value={resolutionNote} onChange={(e) => setResolutionNote(e.target.value)} rows={3} />
@@ -835,9 +834,12 @@ function ComplaintDetail({
                     {locationLoading ? t("locatingPosition") : coords ? t("locationCaptured") : t("attachLocation")}
                   </Button>
                   <Button className="flex-1 touch-manipulation" onClick={onResolve} disabled={locationLoading}>
-                    {t("superClose")}
+                    {isSuper ? t("superClose") : t("markResolved")}
                   </Button>
                 </div>
+                {canResolveEmployee && !coords && (
+                  <p className="text-xs text-muted-foreground">{t("locationRequired")}</p>
+                )}
                 {locationLoading && (
                   <p className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="relative flex size-2 shrink-0">
