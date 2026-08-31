@@ -1,17 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ClipboardList,
   Mail,
   MapPin,
   Phone,
   Shield,
 } from "lucide-react";
 
-import { useAuthDialog } from "@/components/site/AuthDialog";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -128,7 +129,6 @@ function ServiceRow({
 
 function Index() {
   const { t, lang, dir } = useI18n();
-  const { openLogin } = useAuthDialog();
   const Arrow = dir === "rtl" ? ArrowLeft : ArrowRight;
 
   const highlights = [
@@ -183,18 +183,21 @@ function Index() {
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
                 <Button asChild size="lg" className="h-11 bg-gold px-6 text-gold-foreground shadow-lg hover:opacity-95">
+                  <Link to="/complaint" className="gap-2">
+                    <ClipboardList className="size-4" />
+                    {t("submitComplaint")}
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-11 border-white/30 bg-white/8 px-6 text-white backdrop-blur-sm hover:bg-white/15 hover:text-white"
+                >
                   <a href="#contact" className="gap-2">
                     {t("homeContactUs")}
                     <Arrow className="size-4" />
                   </a>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-11 border-white/30 bg-white/8 px-6 text-white backdrop-blur-sm hover:bg-white/15 hover:text-white"
-                  onClick={() => openLogin()}
-                >
-                  {t("login")}
                 </Button>
               </div>
             </div>
@@ -282,8 +285,14 @@ function Index() {
                 </li>
               ))}
             </ul>
-            <div className="mt-8">
-              <Button asChild size="lg" className="gap-2">
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="gap-2 bg-gold text-gold-foreground hover:opacity-95">
+                <Link to="/complaint">
+                  <ClipboardList className="size-4" />
+                  {t("submitComplaint")}
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary" className="gap-2">
                 <a href="#contact">
                   {t("homeContactUs")}
                   <Arrow className="size-4" />
@@ -322,18 +331,7 @@ function Index() {
         </HomeSection>
       </main>
 
-      <footer className="home-section w-full border-t border-border/60 bg-card py-10 sm:py-12">
-        <div className={cn("flex w-full flex-col items-center gap-3 text-center", SECTION_X)}>
-          <span className="grid size-10 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-            الم
-          </span>
-          <p className="font-display text-sm font-semibold">{t("brand")}</p>
-          <p className="max-w-lg text-xs text-muted-foreground">{t("tagline")}</p>
-          <p className="text-[11px] text-muted-foreground">
-            © {new Date().getFullYear()} {t("brand")}
-          </p>
-        </div>
-      </footer>
+      <SiteFooter className="home-section" />
     </div>
   );
 }

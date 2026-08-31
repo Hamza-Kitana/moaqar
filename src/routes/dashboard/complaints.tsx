@@ -36,6 +36,8 @@ import { useI18n, type TKey } from "@/lib/i18n";
 import {
   assignableEmployees,
   complaintComplainantPhone,
+  countEmployeeStatusFilter,
+  matchesEmployeeStatusFilter,
   resolveComplaintCoords,
   useStore,
   visibleComplaints,
@@ -54,7 +56,8 @@ export const Route = createFileRoute("/dashboard/complaints")({
   component: ComplaintsPage,
 });
 
-const FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "assigned", "resolved"];
+const ADMIN_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "assigned", "resolved"];
+const EMPLOYEE_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "resolved"];
 
 type ComplaintCardProps = {
   c: Complaint;
@@ -63,6 +66,7 @@ type ComplaintCardProps = {
   state: ReturnType<typeof useStore>["state"];
   showRegion: boolean;
   showAssignee: boolean;
+  employeeView: boolean;
   isUnread: boolean;
   onOpen: () => void;
 };
@@ -74,6 +78,7 @@ function ComplaintMobileCard({
   state,
   showRegion,
   showAssignee,
+  employeeView,
   isUnread,
   onOpen,
 }: ComplaintCardProps) {
@@ -97,7 +102,7 @@ function ComplaintMobileCard({
           <div className="flex flex-wrap items-center gap-2">
             {isUnread && <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden />}
             <span className="font-mono text-xs font-bold text-primary">{c.ref}</span>
-            <StatusBadge status={c.status} />
+            <StatusBadge status={c.status} employeeView={employeeView} />
           </div>
           <p className="mt-1.5 truncate text-sm font-semibold">
             {lib ? (lang === "ar" ? lib.nameAr : lib.nameEn) : "—"}
@@ -198,9 +203,13 @@ function ComplaintsPage() {
       .join(" ")
       .toLowerCase();
     const matchSearch = !q || haystack.includes(q);
-    const matchStatus = statusFilter === "all" || c.status === statusFilter;
+    const matchStatus = isSuper
+      ? statusFilter === "all" || c.status === statusFilter
+      : matchesEmployeeStatusFilter(c, statusFilter);
     return matchSearch && matchStatus;
   });
+
+  const statusFilters = isSuper ? ADMIN_FILTERS : EMPLOYEE_FILTERS;
 
   const groups = useMemo(() => {
     const byBranch = state.branches
@@ -362,8 +371,12 @@ function ComplaintsPage() {
       )}
 
       <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5 scrollbar-hide sm:justify-center sm:gap-1.5">
-        {FILTERS.map((f) => {
-          const count = f === "all" ? regionList.length : regionList.filter((c) => c.status === f).length;
+        {statusFilters.map((f) => {
+          const count = isSuper
+            ? f === "all"
+              ? regionList.length
+              : regionList.filter((c) => c.status === f).length
+            : countEmployeeStatusFilter(regionList, f);
           const active = statusFilter === f;
           return (
             <button
@@ -422,6 +435,7 @@ function ComplaintsPage() {
                       state={state}
                       showRegion={showRegionColumn}
                       showAssignee={isSuper}
+                      employeeView={!isSuper}
                       isUnread={Boolean(me && !c.readBy.includes(me.id))}
                       onOpen={() => openDetail(c)}
                     />
@@ -506,7 +520,7 @@ function ComplaintsPage() {
                           {complainantPhone ?? t("noPhone")}
                         </TableCell>
                         <TableCell>
-                          <StatusBadge status={c.status} />
+                          <StatusBadge status={c.status} employeeView={!isSuper} />
                         </TableCell>
                         {isSuper && (
                           <TableCell
@@ -627,7 +641,7 @@ function ComplaintDetail({
       <DialogHeader className="shrink-0 border-b border-border/70 bg-secondary/40 px-5 py-4 pe-14 sm:px-6 sm:py-5">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={c.status} />
+            <StatusBadge status={c.status} employeeView={!isSuper} />
             <DialogDescription className="m-0 font-mono text-xs font-semibold text-primary">
               {c.ref}
             </DialogDescription>
@@ -637,7 +651,7 @@ function ComplaintDetail({
           </DialogTitle>
         </div>
         <div className="mt-4 rounded-xl bg-secondary/60 px-3 py-3">
-          <WorkflowSteps status={c.status} />
+          <WorkflowSteps status={c.status} employeeView={!isSuper} />
         </div>
       </DialogHeader>
 

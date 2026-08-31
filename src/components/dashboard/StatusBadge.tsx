@@ -15,11 +15,18 @@ const statusClass: Record<ComplaintStatus, string> = {
   resolved: "border-transparent bg-success/10 text-success",
 };
 
-export function StatusBadge({ status }: { status: ComplaintStatus }) {
+export function StatusBadge({
+  status,
+  employeeView = false,
+}: {
+  status: ComplaintStatus;
+  employeeView?: boolean;
+}) {
   const { t } = useI18n();
+  const display = employeeView ? (status === "resolved" ? "resolved" : "new") : status;
   return (
-    <Badge variant="outline" className={cn("text-[10px] font-semibold shadow-none", statusClass[status])}>
-      {t(statusKey[status])}
+    <Badge variant="outline" className={cn("text-[10px] font-semibold shadow-none", statusClass[display])}>
+      {t(statusKey[display])}
     </Badge>
   );
 }

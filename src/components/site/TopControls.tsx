@@ -48,6 +48,7 @@ export function NotificationBell({ overHero = false }: { overHero?: boolean }) {
   const { myNotifications, markNotificationsRead, me } = useStore();
   if (!me) return null;
   const unread = myNotifications.filter((n) => !n.read).length;
+  const badgeLabel = unread > 99 ? "99+" : unread > 9 ? "9+" : String(unread);
 
   return (
     <Popover>
@@ -56,16 +57,25 @@ export function NotificationBell({ overHero = false }: { overHero?: boolean }) {
           variant="ghost"
           size="iconLg"
           className={cn("relative touch-manipulation", overHero && "text-white hover:bg-white/10 hover:text-white")}
+          aria-label={
+            unread > 0
+              ? `${t("notifications")} — ${unread}`
+              : t("notifications")
+          }
         >
-          <Bell className="size-5" />
+          <Bell className={cn("size-5", unread > 0 && "stroke-[2]")} />
           {unread > 0 && (
             <span
+              aria-hidden
               className={cn(
-                "absolute -end-0.5 -top-0.5 grid size-4 place-items-center rounded-full text-[10px] font-bold",
-                overHero ? "bg-gold text-gold-foreground" : "bg-primary text-primary-foreground",
+                "pointer-events-none absolute top-0.5 end-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none tabular-nums shadow-md ring-2",
+                badgeLabel.length > 1 && "min-w-[1.375rem] px-1",
+                overHero
+                  ? "bg-primary text-primary-foreground ring-white/95"
+                  : "bg-destructive text-white ring-background",
               )}
             >
-              {unread}
+              {badgeLabel}
             </span>
           )}
         </Button>

@@ -121,21 +121,31 @@ function DashboardOverview() {
           <h2 className="font-semibold">{t("openComplaintsTitle")}</h2>
           <p className="mt-1 text-3xl font-bold text-primary">{open.length}</p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            {(["new", "assigned", "resolved"] as const).map((st) => (
+            {(isSuper
+              ? (["new", "assigned", "resolved"] as const)
+              : (["new", "resolved"] as const)
+            ).map((st) => {
+              const count = isSuper
+                ? complaints.filter((c) => c.status === st).length
+                : st === "new"
+                  ? complaints.filter((c) => c.status !== "resolved").length
+                  : complaints.filter((c) => c.status === "resolved").length;
+              return (
               <Link
                 key={st}
                 to="/dashboard/complaints"
                 className="rounded-full bg-secondary px-3 py-2 text-xs touch-manipulation transition-colors hover:bg-primary/20 active:scale-[0.98]"
               >
-                {complaints.filter((c) => c.status === st).length} — {t(`st_${st}` as "st_new")}
+                {count} — {t(`st_${st}` as "st_new")}
               </Link>
-            ))}
+            );
+            })}
           </div>
         </section>
 
         <section className="surface space-y-4 rounded-2xl p-5">
           <h2 className="font-semibold">{t("workflow")}</h2>
-          <WorkflowSteps status={(recent[0]?.status ?? "new") as ComplaintStatus} />
+          <WorkflowSteps status={(recent[0]?.status ?? "new") as ComplaintStatus} employeeView={!isSuper} />
           <p className="text-xs text-muted-foreground">{t("workflowHint")}</p>
         </section>
       </div>
@@ -158,7 +168,7 @@ function DashboardOverview() {
                       {c.notes}
                     </p>
                   </div>
-                  <StatusBadge status={c.status} />
+                  <StatusBadge status={c.status} employeeView={!isSuper} />
                 </li>
               );
             })}

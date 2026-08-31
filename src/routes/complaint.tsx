@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { LocationMap } from "@/components/dashboard/LocationMap";
 import { ImageUpload } from "@/components/site/ImageUpload";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,9 +48,9 @@ function ComplaintPage() {
   const libraryCoords = selectedLibrary ? BRANCH_COORDS[selectedLibrary.branchId] : null;
 
   return (
-    <div className="min-h-[100dvh]">
+    <div className="flex min-h-[100dvh] flex-col">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl gap-6 px-3 py-6 sm:gap-8 sm:px-4 sm:py-10">
+      <main className="mx-auto w-full max-w-3xl flex-1 gap-6 px-3 py-6 sm:gap-8 sm:px-4 sm:py-10">
         <section className="surface rise-in rounded-2xl p-4 sm:rounded-3xl sm:p-6 md:p-8">
           <h1 className="text-xl font-bold sm:text-2xl">{t("submitComplaint")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("submitComplaintDesc")}</p>
@@ -225,6 +226,7 @@ function ComplaintPage() {
           </form>
         </section>
       </main>
+      <SiteFooter />
     </div>
   );
 }

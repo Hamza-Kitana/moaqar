@@ -1,10 +1,10 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, LogIn, LogOut } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { ClipboardList, LayoutDashboard, LogOut, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useAuthDialog } from "@/components/site/AuthDialog";
 import { LangToggle, NotificationBell, ThemeToggle } from "@/components/site/TopControls";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useI18n } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -14,8 +14,17 @@ const SCROLL_THRESHOLD = 48;
 export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
   const { t } = useI18n();
   const { me, logout } = useStore();
-  const { openLogin } = useAuthDialog();
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [accountOpen, setAccountOpen] = useState(false);
+
+  const handleLogout = () => {
+    setAccountOpen(false);
+    logout();
+    if (pathname.startsWith("/dashboard")) {
+      navigate({ to: "/" });
+    }
+  };
   const isHome = transparent || pathname === "/";
   const [scrolled, setScrolled] = useState(false);
 
@@ -78,15 +87,6 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
             <>
               <Button
                 asChild
-                size="iconLg"
-                className="touch-manipulation bg-gold text-gold-foreground shadow-md hover:opacity-90 sm:hidden"
-              >
-                <Link to="/dashboard">
-                  <LayoutDashboard className="size-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
                 size="sm"
                 className="hidden gap-2 bg-gold text-gold-foreground shadow-md hover:opacity-90 sm:inline-flex"
               >
@@ -96,40 +96,93 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
                 </Link>
               </Button>
               <Button
-                size="iconLg"
-                variant="ghost"
-                className={cn(
-                  "touch-manipulation sm:hidden",
-                  overHero ? "text-white hover:bg-white/15 hover:text-white" : "",
-                )}
-                onClick={logout}
-              >
-                <LogOut className="size-4" />
-              </Button>
-              <Button
                 size="sm"
                 variant="ghost"
                 className={cn(
                   "hidden sm:inline-flex",
                   overHero ? "text-white hover:bg-white/15 hover:text-white" : "",
                 )}
-                onClick={logout}
+                onClick={handleLogout}
               >
                 {t("logout")}
               </Button>
+              <Button
+                type="button"
+                size="iconLg"
+                variant="outline"
+                className={cn(
+                  "touch-manipulation sm:hidden",
+                  overHero
+                    ? "border-white/25 bg-white/10 text-white hover:bg-white/15 hover:text-white"
+                    : "",
+                )}
+                onClick={() => setAccountOpen(true)}
+                aria-label={t("accountMenu")}
+              >
+                <Menu className="size-4" />
+              </Button>
+              <Sheet open={accountOpen} onOpenChange={setAccountOpen}>
+                <SheetContent side="bottom" className="rounded-t-3xl px-4 pb-safe-nav pt-6">
+                  <SheetHeader className="mb-4 text-start">
+                    <SheetTitle>{me.name}</SheetTitle>
+                    <p className="text-xs text-muted-foreground">
+                      {me.kind === "super" ? t("superAdmin") : t("employeeRole")}
+                    </p>
+                  </SheetHeader>
+                  <nav className="grid gap-1">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      className="h-12 w-full justify-start gap-3 touch-manipulation"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <Link to="/dashboard">
+                        <LayoutDashboard className="size-4" />
+                        {t("dashboard")}
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="mt-1 h-12 w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive touch-manipulation"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="size-4" />
+                      {t("logout")}
+                    </Button>
+                  </nav>
+                </SheetContent>
+              </Sheet>
             </>
           ) : (
-            <Button
-              size="lg"
-              className={cn(
-                "h-11 gap-2 touch-manipulation shadow-md",
-                overHero ? "bg-gold text-gold-foreground hover:opacity-90" : "",
-              )}
-              onClick={() => openLogin()}
-            >
-              <LogIn className="size-4" />
-              <span className="hidden min-[400px]:inline">{t("login")}</span>
-            </Button>
+            <>
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                className={cn(
+                  "hidden gap-2 touch-manipulation sm:inline-flex",
+                  overHero ? "text-white hover:bg-white/15 hover:text-white" : "",
+                )}
+              >
+                <Link to="/complaint">
+                  <ClipboardList className="size-4" />
+                  {t("submitComplaint")}
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="iconLg"
+                className={cn(
+                  "touch-manipulation sm:hidden",
+                  overHero ? "text-white hover:bg-white/15" : "",
+                )}
+                variant="ghost"
+              >
+                <Link to="/complaint" aria-label={t("submitComplaint")}>
+                  <ClipboardList className="size-4" />
+                </Link>
+              </Button>
+            </>
           )}
         </div>
       </div>

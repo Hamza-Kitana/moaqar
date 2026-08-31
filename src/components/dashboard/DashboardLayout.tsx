@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useI18n } from "@/lib/i18n";
 import { useStore, visibleComplaints } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 
 type NavItem = {
   to: string;
@@ -72,15 +72,17 @@ export function DashboardLayout() {
   const store = useStore();
   const { me, logout, isSuper } = store;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const complaints = useMemo(
+    () => (me ? visibleComplaints(store) : []),
+    [store.state, store.me, store.isSuper, me],
+  );
 
   if (!me) return null;
 
   const isEmployee = me.kind === "employee";
-  const complaints = useMemo(
-    () => visibleComplaints(store),
-    [store.state, store.me, store.isSuper],
-  );
   const pendingComplaints = isSuper
     ? complaints.filter((c) => c.status === "new").length
     : complaints.filter((c) => c.status === "assigned").length;
@@ -114,7 +116,7 @@ export function DashboardLayout() {
   const handleLogout = () => {
     setMoreOpen(false);
     logout();
-    window.location.href = "/";
+    navigate({ to: "/" });
   };
 
   return (
@@ -164,6 +166,15 @@ export function DashboardLayout() {
             <ThemeToggle compact />
             <LangToggle compact />
             <NotificationBell />
+            <Button
+              variant="ghost"
+              size="iconLg"
+              className="touch-manipulation text-destructive hover:bg-destructive/10 hover:text-destructive lg:hidden"
+              onClick={handleLogout}
+              aria-label={t("logout")}
+            >
+              <LogOut className="size-4" />
+            </Button>
           </div>
         </header>
 
@@ -202,28 +213,29 @@ export function DashboardLayout() {
               </Link>
             );
           })}
-          {bottomMoreItems.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setMoreOpen(true)}
-              className={cn(
-                "relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 touch-manipulation transition-colors touch-target",
-                moreActive || moreOpen ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              <Menu className={cn("size-5", (moreActive || moreOpen) && "stroke-[2.5]")} />
-              <span className={cn("text-[11px] font-medium sm:text-xs", (moreActive || moreOpen) && "font-semibold")}>
-                {t("more")}
-              </span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            className={cn(
+              "relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 touch-manipulation transition-colors touch-target",
+              moreActive || moreOpen ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <Menu className={cn("size-5", (moreActive || moreOpen) && "stroke-[2.5]")} />
+            <span className={cn("text-[11px] font-medium sm:text-xs", (moreActive || moreOpen) && "font-semibold")}>
+              {t("more")}
+            </span>
+          </button>
         </div>
       </nav>
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent side="bottom" className="rounded-t-3xl px-4 pb-safe-nav pt-6">
           <SheetHeader className="mb-4 text-start">
-            <SheetTitle>{t("more")}</SheetTitle>
+            <SheetTitle>{me.name}</SheetTitle>
+            <p className="text-xs text-muted-foreground">
+              {isSuper ? t("superAdmin") : t("employeeRole")}
+            </p>
           </SheetHeader>
           <nav className="grid gap-1">
             {bottomMoreItems.map((item) => (
@@ -238,7 +250,10 @@ export function DashboardLayout() {
             ))}
             <Button
               variant="ghost"
-              className="mt-2 w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className={cn(
+                "h-12 w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive touch-manipulation",
+                bottomMoreItems.length > 0 && "mt-2",
+              )}
               onClick={handleLogout}
             >
               <LogOut className="size-4" />

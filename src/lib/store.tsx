@@ -473,7 +473,7 @@ const SYNC_CHANNEL = "mwq.state.sync";
 function mergeRemoteState(prev: State, incoming: State): State {
   return {
     ...incoming,
-    sessionId: prev.sessionId,
+    sessionId: incoming.sessionId === null ? null : prev.sessionId,
   };
 }
 
@@ -543,6 +543,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore corrupt payloads */
     }
+  }, []);
+
+  const persistState = useCallback((next: State) => {
+    const payload = JSON.stringify(next);
+    lastSyncPayloadRef.current = payload;
+    window.localStorage.setItem(KEY, payload);
+    channelRef.current?.postMessage({
+      type: "sync",
+      payload,
+      source: tabIdRef.current,
+    });
   }, []);
 
   useEffect(() => {
@@ -659,10 +670,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (a) => a.username.toLowerCase() === username.trim().toLowerCase() && a.password === password,
       );
       if (!found || !found.active) return null;
-      setState((s) => ({ ...s, sessionId: found.id }));
+      setState((s) => {
+        const next = { ...s, sessionId: found.id };
+        persistState(next);
+        return next;
+      });
       return found;
     },
-    logout: () => setState((s) => ({ ...s, sessionId: null })),
+    logout: () => {
+      setState((s) => {
+        const next = { ...s, sessionId: null };
+        persistState(next);
+        return next;
+      });
+    },
     addComplaint: (data) => {
       let newRef = "";
       setState((s) => {
@@ -892,4 +913,27 @@ export function visibleComplaints(ctx: Ctx): Complaint[] {
 
 export function assignableEmployees(ctx: Ctx): Account[] {
   return ctx.activeEmployees;
+}
+
+/** For field employees: assigned tasks appear as "new", not "assigned". */
+export function employeeDisplayStatus(status: ComplaintStatus): "new" | "resolved" {
+  return status === "resolved" ? "resolved" : "new";
+}
+
+export function matchesEmployeeStatusFilter(
+  complaint: Complaint,
+  filter: ComplaintStatus | "all",
+): boolean {
+  if (filter === "all") return true;
+  if (filter === "resolved") return complaint.status === "resolved";
+  if (filter === "new") return complaint.status !== "resolved";
+  return false;
+}
+
+export function countEmployeeStatusFilter(
+  complaints: Complaint[],
+  filter: ComplaintStatus | "all",
+): number {
+  if (filter === "all") return complaints.length;
+  return complaints.filter((c) => matchesEmployeeStatusFilter(c, filter)).length;
 }
