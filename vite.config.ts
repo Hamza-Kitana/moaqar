@@ -29,18 +29,22 @@ export default defineConfig(({ mode, command }) => {
 
   if (command === "build") {
     plugins.push(
-      nitro({
-        preset: "cloudflare-module",
-        output: {
-          dir: ".output",
-          serverDir: ".output/server",
-          publicDir: ".output/public",
-        },
-        cloudflare: {
-          nodeCompat: true,
-          deployConfig: true,
-        },
-      }),
+      nitro(
+        process.env.VERCEL
+          ? { preset: "vercel" }
+          : {
+              preset: "cloudflare-module",
+              output: {
+                dir: ".output",
+                serverDir: ".output/server",
+                publicDir: ".output/public",
+              },
+              cloudflare: {
+                nodeCompat: true,
+                deployConfig: true,
+              },
+            },
+      ),
     );
   }
 
