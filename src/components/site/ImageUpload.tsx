@@ -1,6 +1,7 @@
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { compressImageFile } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -13,19 +14,26 @@ type Props = {
 export function ImageUpload({ images, onChange, label, hint }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const addFiles = (files: FileList | null) => {
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          onChange([...images, reader.result]);
+  const addFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setLoading(true);
+    try {
+      const compressed: string[] = [];
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) continue;
+        try {
+          compressed.push(await compressImageFile(file));
+        } catch {
+          /* skip unreadable files */
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      }
+      if (compressed.length) onChange([...images, ...compressed]);
+    } finally {
+      setLoading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   };
 
   return (
@@ -34,8 +42,8 @@ export function ImageUpload({ images, onChange, label, hint }: Props) {
       <div
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => e.key === "Enter" && !loading && inputRef.current?.click()}
+        onClick={() => !loading && inputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -44,15 +52,16 @@ export function ImageUpload({ images, onChange, label, hint }: Props) {
         onDrop={(e) => {
           e.preventDefault();
           setDragging(false);
-          addFiles(e.dataTransfer.files);
+          void addFiles(e.dataTransfer.files);
         }}
         className={cn(
           "surface flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-8 transition-colors",
+          loading && "pointer-events-none opacity-70",
           dragging ? "border-primary bg-primary/5" : "border-border/70 hover:border-primary/40",
         )}
       >
         <span className="grid size-12 place-items-center rounded-xl bg-primary/10 text-primary">
-          <ImagePlus className="size-6" />
+          {loading ? <Loader2 className="size-6 animate-spin" /> : <ImagePlus className="size-6" />}
         </span>
         {hint && <p className="mt-3 text-center text-xs text-muted-foreground">{hint}</p>}
         <input
@@ -61,7 +70,7 @@ export function ImageUpload({ images, onChange, label, hint }: Props) {
           accept="image/*"
           multiple
           className="hidden"
-          onChange={(e) => addFiles(e.target.files)}
+          onChange={(e) => void addFiles(e.target.files)}
         />
       </div>
       {images.length > 0 && (

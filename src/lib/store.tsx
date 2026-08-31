@@ -168,6 +168,7 @@ function normalizeComplaint(c: Complaint & { status?: string }): Complaint {
     status: status as ComplaintStatus,
     employeeReport: c.employeeReport ?? null,
     resolvedBy: c.resolvedBy ?? null,
+    images: Array.isArray(c.images) ? c.images.filter(Boolean) : [],
   };
 }
 

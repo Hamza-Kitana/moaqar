@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Briefcase, Building2, Calendar, Check, ChevronLeft, ChevronRight, CircleX, Inbox, Loader2, MapPin, Phone, RotateCcw, Search, ShieldCheck, Trash2, User, UserCog } from "lucide-react";
+import { Briefcase, Building2, Calendar, Check, ChevronLeft, ChevronRight, CircleX, ImageIcon, Inbox, Loader2, MapPin, Phone, RotateCcw, Search, ShieldCheck, Trash2, User, UserCog } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { ComplaintPhotoGallery } from "@/components/dashboard/ComplaintPhotoGallery";
 import { ComplaintTimeline } from "@/components/dashboard/ComplaintTimeline";
 import { LocationMap } from "@/components/dashboard/LocationMap";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -112,6 +113,12 @@ function ComplaintMobileCard({
             {isUnread && <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden />}
             <span className="font-mono text-xs font-bold text-primary">{c.ref}</span>
             <StatusBadge status={c.status} employeeView={employeeView} reportOutcome={c.employeeReport?.outcome} />
+            {c.images.length > 0 && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <ImageIcon className="size-3" />
+                {c.images.length}
+              </span>
+            )}
           </div>
           <p className="mt-1.5 truncate text-sm font-semibold">
             {lib ? (lang === "ar" ? lib.nameAr : lib.nameEn) : "—"}
@@ -839,6 +846,13 @@ function ComplaintDetail({
           />
         </dl>
 
+        <div className="rounded-xl bg-secondary/40 px-4 py-3">
+          <p className="text-[11px] font-semibold text-muted-foreground">{t("notes")}</p>
+          <p className="mt-2 text-sm leading-relaxed">{c.notes}</p>
+        </div>
+
+        <ComplaintPhotoGallery images={c.images} />
+
         <div className="grid gap-3 sm:grid-cols-2">
           {(() => {
             const problem = resolveComplaintCoords(c);
@@ -880,22 +894,6 @@ function ComplaintDetail({
             </div>
           )}
         </div>
-
-        <div className="rounded-xl bg-secondary/40 px-4 py-3">
-          <p className="text-[11px] font-semibold text-muted-foreground">{t("notes")}</p>
-          <p className="mt-2 text-sm leading-relaxed">{c.notes}</p>
-        </div>
-
-        {c.images.length > 0 && (
-          <div>
-            <p className="mb-2 text-[11px] font-semibold text-muted-foreground">{t("photos")}</p>
-            <div className="flex flex-wrap gap-2">
-              {c.images.map((src, i) => (
-                <img key={i} src={src} alt="" className="size-20 rounded-xl border border-border object-cover" />
-              ))}
-            </div>
-          </div>
-        )}
 
         {report && (
           <div

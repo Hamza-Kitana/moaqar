@@ -117,6 +117,7 @@ const dict = {
   copyRef: { ar: "نسخ الرقم", en: "Copy reference" },
   refCopied: { ar: "تم النسخ", en: "Copied" },
   closeAndHome: { ar: "إغلاق والعودة للرئيسية", en: "Close and go home" },
+  close: { ar: "إغلاق", en: "Close" },
   submitAnotherComplaint: { ar: "تقديم شكوى أخرى", en: "Submit another complaint" },
   login: { ar: "تسجيل الدخول", en: "Sign in" },
   employeeLogin: { ar: "تسجيل دخول الموظفين", en: "Staff sign in" },
@@ -378,6 +379,10 @@ const dict = {
   refNo: { ar: "الرقم المرجعي", en: "Reference" },
   viewOnMap: { ar: "عرض على الخريطة", en: "View on map" },
   photos: { ar: "الصور المرفقة", en: "Attached photos" },
+  tapToViewPhoto: { ar: "انقر على الصورة لعرضها بالحجم الكامل", en: "Tap a photo to view full size" },
+  photoViewer: { ar: "صورة", en: "Photo" },
+  prevPhoto: { ar: "الصورة السابقة", en: "Previous photo" },
+  nextPhoto: { ar: "الصورة التالية", en: "Next photo" },
   selectBranch: { ar: "اختر الفرع", en: "Select branch" },
   selectLibrary: { ar: "اختر المؤسسة", en: "Select institution" },
   homeContactIntro: {
