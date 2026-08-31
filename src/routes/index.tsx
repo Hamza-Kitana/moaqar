@@ -3,42 +3,39 @@ import type { ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   CheckCircle2,
   ClipboardList,
   Mail,
   MapPin,
   Phone,
   Shield,
+  Wrench,
 } from "lucide-react";
 
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { HOME_IMAGES } from "@/lib/home-images";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "شركة الموقر التجارية | توريد وتجهيز المؤسسات" },
+      { title: "شركة الموقر التجارية | صيانة مطابع وتجهيزات" },
       {
         name: "description",
-        content: "شركة الموقر التجارية — توريد وتجهيز المؤسسات في المملكة الأردنية.",
+        content: "شركة الموقر التجارية — صيانة مطابع وتجهيزات المؤسسات في المملكة الأردنية.",
       },
-      { property: "og:title", content: "شركة الموقر التجارية | توريد وتجهيز المؤسسات" },
+      { property: "og:title", content: "شركة الموقر التجارية | صيانة مطابع وتجهيزات" },
       {
         property: "og:description",
-        content: "شركة الموقر التجارية — شريككم في توريد وتجهيز المؤسسات.",
+        content: "فنيون صيانة مطابع ومعدات مؤسسات — فرق ميدانية في عمان وعجلون وإربد.",
       },
     ],
   }),
   component: Index,
 });
-
-const HERO_IMG = "/hero-bg.jpg?v=3";
-const ABOUT_IMG =
-  "https://images.unsplash.com/photo-1481627834876-b7833e1d8223?auto=format&fit=crop&w=1600&q=80";
 
 const SECTION_X = "px-6 sm:px-10 lg:px-16 xl:px-24";
 
@@ -69,11 +66,13 @@ function HomeSection({
 
 function ImagePanel({
   img,
+  alt,
   title,
   body,
   className,
 }: {
   img: string;
+  alt: string;
   title: string;
   body: string;
   className?: string;
@@ -82,8 +81,9 @@ function ImagePanel({
     <div className={cn("group relative min-h-[14rem] overflow-hidden sm:min-h-[18rem] lg:min-h-[20rem] lg:flex-1", className)}>
       <img
         src={img}
-        alt=""
+        alt={alt}
         className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+        loading="lazy"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-primary/20" />
       <div className="relative flex h-full min-h-[16rem] flex-col justify-end p-6 sm:min-h-[20rem] sm:p-8 lg:p-10">
@@ -96,12 +96,14 @@ function ImagePanel({
 
 function ServiceRow({
   img,
+  alt,
   title,
   body,
   reverse = false,
   delay,
 }: {
   img: string;
+  alt: string;
   title: string;
   body: string;
   reverse?: boolean;
@@ -116,7 +118,7 @@ function ServiceRow({
       style={delay ? { animationDelay: delay } : undefined}
     >
       <div className="relative min-h-[14rem] overflow-hidden sm:min-h-[18rem] lg:min-h-full">
-        <img src={img} alt="" className="absolute inset-0 size-full object-cover" />
+        <img src={img} alt={alt} className="absolute inset-0 size-full object-cover" loading="lazy" />
         <div className="absolute inset-0 bg-primary/10" />
       </div>
       <div className={cn("flex flex-col justify-center bg-card px-6 py-10 sm:px-10 sm:py-12 lg:px-16 xl:px-20")}>
@@ -132,21 +134,21 @@ function Index() {
   const Arrow = dir === "rtl" ? ArrowLeft : ArrowRight;
 
   const highlights = [
-    { img: HERO_IMG, title: t("heroStat1"), body: t("heroStat1Desc") },
-    { img: "/home-install.jpg", title: t("heroStat2"), body: t("heroStat2Desc") },
-    { img: "/home-team.jpg", title: t("heroStat3"), body: t("heroStat3Desc") },
+    { img: HOME_IMAGES.hero, alt: t("homeImgPress"), title: t("heroStat1"), body: t("heroStat1Desc") },
+    { img: HOME_IMAGES.workshop, alt: t("homeImgWorkshop"), title: t("heroStat2"), body: t("heroStat2Desc") },
+    { img: HOME_IMAGES.technician, alt: t("homeImgTechnician"), title: t("heroStat3"), body: t("heroStat3Desc") },
   ];
 
   const services = [
-    { img: "/home-supply.jpg", title: t("homeService1Title"), body: t("homeService1Body") },
-    { img: "/home-install.jpg", title: t("homeService2Title"), body: t("homeService2Body") },
-    { img: "/home-team.jpg", title: t("homeService3Title"), body: t("homeService3Body") },
+    { img: HOME_IMAGES.pressLine, alt: t("homeService1Title"), title: t("homeService1Title"), body: t("homeService1Body") },
+    { img: HOME_IMAGES.equipment, alt: t("homeService2Title"), title: t("homeService2Title"), body: t("homeService2Body") },
+    { img: HOME_IMAGES.fieldService, alt: t("homeService3Title"), title: t("homeService3Title"), body: t("homeService3Body") },
   ];
 
   const steps = [
-    { img: "/home-supply.jpg", title: t("homeStep1"), body: t("homeStep1Desc") },
-    { img: "/home-install.jpg", title: t("homeStep2"), body: t("homeStep2Desc") },
-    { img: "/home-team.jpg", title: t("homeStep3"), body: t("homeStep3Desc") },
+    { img: HOME_IMAGES.technician, alt: t("homeStep1"), title: t("homeStep1"), body: t("homeStep1Desc") },
+    { img: HOME_IMAGES.workshop, alt: t("homeStep2"), title: t("homeStep2"), body: t("homeStep2Desc") },
+    { img: HOME_IMAGES.fieldService, alt: t("homeStep3"), title: t("homeStep3"), body: t("homeStep3Desc") },
   ];
 
   const aboutPoints = [t("homeAboutPoint1"), t("homeAboutPoint2"), t("homeAboutPoint3")];
@@ -164,7 +166,12 @@ function Index() {
       <main className="w-full">
         {/* Hero */}
         <HomeSection fullScreen className="isolate flex flex-col">
-          <img src={HERO_IMG} alt="" className="home-hero-img absolute inset-0 size-full object-cover" />
+          <img
+            src={HOME_IMAGES.hero}
+            alt={t("homeImgPress")}
+            className="home-hero-img absolute inset-0 size-full object-cover"
+            fetchPriority="high"
+          />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,oklch(0.16_0.045_255/0.93)_0%,oklch(0.22_0.04_255/0.78)_50%,oklch(0.28_0.035_255/0.55)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_0%_0%,oklch(0.72_0.09_76/0.15),transparent_60%)]" />
 
@@ -243,8 +250,9 @@ function Index() {
               >
                 <img
                   src={step.img}
-                  alt=""
+                  alt={step.alt}
                   className="absolute inset-0 size-full object-cover opacity-40 transition-opacity duration-500 group-hover:opacity-55"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-primary/40" />
                 <div className="relative flex h-full min-h-[18rem] flex-col justify-end p-6 sm:p-8 lg:p-10">
@@ -260,12 +268,17 @@ function Index() {
         {/* About */}
         <HomeSection className="grid lg:grid-cols-2">
           <div className="home-rise relative min-h-[20rem] overflow-hidden lg:min-h-svh">
-            <img src={ABOUT_IMG} alt="" className="absolute inset-0 size-full object-cover" />
+            <img
+              src={HOME_IMAGES.pressLine}
+              alt={t("homeImgPress")}
+              className="absolute inset-0 size-full object-cover"
+              loading="lazy"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/25 to-transparent" />
             <div className={cn("absolute inset-x-0 bottom-0 p-6 sm:p-10", SECTION_X)}>
               <p className="text-sm font-semibold text-gold">{t("tagline")}</p>
               <p className="mt-2 flex items-center gap-2 text-sm text-white/80">
-                <BookOpen className="size-4 text-gold" />
+                <Wrench className="size-4 text-gold" />
                 {lang === "ar" ? "عمان · عجلون · إربد" : "Amman · Ajloun · Irbid"}
               </p>
             </div>
@@ -304,7 +317,12 @@ function Index() {
 
         {/* Contact */}
         <HomeSection id="contact" className="relative overflow-hidden bg-secondary/40">
-          <img src={HERO_IMG} alt="" className="absolute inset-0 size-full object-cover opacity-20" />
+          <img
+            src={HOME_IMAGES.workshop}
+            alt={t("homeImgWorkshop")}
+            className="absolute inset-0 size-full object-cover opacity-20"
+            loading="lazy"
+          />
           <div className="absolute inset-0 bg-background/85 backdrop-blur-sm" />
           <div className={cn("home-rise relative flex flex-col justify-center py-12 sm:min-h-[70svh] lg:min-h-svh", SECTION_X)}>
             <div className="mx-auto w-full max-w-4xl text-center">
