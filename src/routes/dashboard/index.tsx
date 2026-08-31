@@ -17,7 +17,8 @@ function DashboardOverview() {
   const { me, state, isSuper, activeEmployees } = store;
   const complaints = useMemo(() => visibleComplaints(store), [store.state, store.me, store.isSuper]);
 
-  const openTasks = complaints.filter((c) => c.status === "assigned");
+  const openTasks = complaints.filter((c) => c.status === "assigned" || c.status === "returned");
+  const returnedTasks = complaints.filter((c) => c.status === "returned");
   const pendingTasks = complaints.filter((c) => c.status === "pending_review");
   const closedTasks = complaints.filter((c) => c.status === "closed");
 
@@ -123,16 +124,18 @@ function DashboardOverview() {
           <p className="mt-1 text-3xl font-bold text-primary">{open.length}</p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
             {(isSuper
-              ? (["new", "assigned", "pending_review", "closed"] as const)
-              : (["assigned", "pending_review", "closed"] as const)
+              ? (["new", "assigned", "returned", "pending_review", "closed"] as const)
+              : (["assigned", "returned", "pending_review", "closed"] as const)
             ).map((st) => {
               const count = isSuper
                 ? complaints.filter((c) => c.status === st).length
                 : st === "assigned"
-                  ? openTasks.length
-                  : st === "pending_review"
-                    ? pendingTasks.length
-                    : closedTasks.length;
+                  ? complaints.filter((c) => c.status === "assigned").length
+                  : st === "returned"
+                    ? returnedTasks.length
+                    : st === "pending_review"
+                      ? pendingTasks.length
+                      : closedTasks.length;
               const label =
                 !isSuper && st === "assigned" ? t("st_new") : t(`st_${st}` as "st_new");
               return (
@@ -150,7 +153,11 @@ function DashboardOverview() {
 
         <section className="surface space-y-4 rounded-2xl p-5 text-center">
           <h2 className="font-semibold">{t("workflow")}</h2>
-          <WorkflowSteps status={(recent[0]?.status ?? "new") as ComplaintStatus} employeeView={!isSuper} />
+          <WorkflowSteps
+            status={(recent[0]?.status ?? "new") as ComplaintStatus}
+            employeeView={!isSuper}
+            reportOutcome={recent[0]?.employeeReport?.outcome}
+          />
           <p className="text-xs leading-relaxed text-muted-foreground">{t("workflowHint")}</p>
         </section>
       </div>
@@ -173,7 +180,11 @@ function DashboardOverview() {
                       {c.notes}
                     </p>
                   </div>
-                  <StatusBadge status={c.status} employeeView={!isSuper} />
+                  <StatusBadge
+                    status={c.status}
+                    employeeView={!isSuper}
+                    reportOutcome={c.employeeReport?.outcome}
+                  />
                 </li>
               );
             })}

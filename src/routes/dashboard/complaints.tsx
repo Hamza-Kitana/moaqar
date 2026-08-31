@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { useI18n, type TKey } from "@/lib/i18n";
 import {
   assignableEmployees,
@@ -58,8 +59,8 @@ export const Route = createFileRoute("/dashboard/complaints")({
   component: ComplaintsPage,
 });
 
-const ADMIN_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "assigned", "pending_review", "closed"];
-const EMPLOYEE_FILTERS: Array<ComplaintStatus | "all"> = ["all", "assigned", "pending_review", "closed"];
+const ADMIN_FILTERS: Array<ComplaintStatus | "all"> = ["all", "new", "assigned", "returned", "pending_review", "closed"];
+const EMPLOYEE_FILTERS: Array<ComplaintStatus | "all"> = ["all", "assigned", "returned", "pending_review", "closed"];
 
 function statusFilterLabel(f: ComplaintStatus | "all", isSuper: boolean, t: (k: TKey) => string) {
   if (f === "all") return t("filterAll");
@@ -110,7 +111,7 @@ function ComplaintMobileCard({
           <div className="flex flex-wrap items-center gap-2">
             {isUnread && <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden />}
             <span className="font-mono text-xs font-bold text-primary">{c.ref}</span>
-            <StatusBadge status={c.status} employeeView={employeeView} />
+            <StatusBadge status={c.status} employeeView={employeeView} reportOutcome={c.employeeReport?.outcome} />
           </div>
           <p className="mt-1.5 truncate text-sm font-semibold">
             {lib ? (lang === "ar" ? lib.nameAr : lib.nameEn) : "—"}
@@ -156,7 +157,7 @@ function ComplaintMobileCard({
       </div>
 
       <p className="mt-2 text-[10px] text-muted-foreground">
-        {new Date(c.createdAt).toLocaleDateString(lang === "ar" ? "ar-JO" : "en-GB", {
+        {formatDate(c.createdAt, lang, {
           day: "numeric",
           month: "short",
           year: "numeric",
@@ -533,7 +534,11 @@ function ComplaintsPage() {
                           {complainantPhone ?? t("noPhone")}
                         </TableCell>
                         <TableCell>
-                          <StatusBadge status={c.status} employeeView={!isSuper} />
+                          <StatusBadge
+                            status={c.status}
+                            employeeView={!isSuper}
+                            reportOutcome={c.employeeReport?.outcome}
+                          />
                         </TableCell>
                         {isSuper && (
                           <TableCell
@@ -546,7 +551,7 @@ function ComplaintsPage() {
                           </TableCell>
                         )}
                         <TableCell className="pe-4 text-muted-foreground">
-                          {new Date(c.createdAt).toLocaleDateString(lang === "ar" ? "ar-JO" : "en-GB")}
+                          {formatDate(c.createdAt, lang)}
                         </TableCell>
                       </TableRow>
                     );
@@ -746,7 +751,7 @@ function ComplaintDetail({
   const isClosed = c.status === "closed";
   const canAssign = isSuper && !isClosed && c.status !== "pending_review";
   const canSubmitReport =
-    !isSuper && !!meId && c.assignedTo === meId && c.status === "assigned";
+    !isSuper && !!meId && c.assignedTo === meId && (c.status === "assigned" || c.status === "returned");
   const canReview = isSuper && c.status === "pending_review";
   const awaitingReview = !isSuper && c.status === "pending_review" && c.assignedTo === meId;
   const report = c.employeeReport;
@@ -768,10 +773,18 @@ function ComplaintDetail({
               </p>
             )}
           </div>
-          <StatusBadge status={c.status} employeeView={!isSuper} />
+          <StatusBadge
+            status={c.status}
+            employeeView={!isSuper}
+            reportOutcome={c.employeeReport?.outcome}
+          />
         </div>
         <div className="mt-4">
-          <WorkflowSteps status={c.status} employeeView={!isSuper} />
+          <WorkflowSteps
+            status={c.status}
+            employeeView={!isSuper}
+            reportOutcome={c.employeeReport?.outcome}
+          />
         </div>
       </DialogHeader>
 
@@ -822,7 +835,7 @@ function ComplaintDetail({
           <MetaRow
             icon={Calendar}
             label={t("createdAt")}
-            value={new Date(c.createdAt).toLocaleString(lang === "ar" ? "ar-JO" : "en-GB")}
+            value={formatDateTime(c.createdAt, lang)}
           />
         </dl>
 
@@ -904,7 +917,7 @@ function ComplaintDetail({
             </p>
             <p className="mt-2 text-sm leading-relaxed">{report.note}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {report.by} · {new Date(report.at).toLocaleString(lang === "ar" ? "ar-JO" : "en-GB")}
+              {report.by} · {formatDateTime(report.at, lang)}
             </p>
           </div>
         )}

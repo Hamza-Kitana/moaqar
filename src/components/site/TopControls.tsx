@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
+import { formatDateTime } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -100,7 +101,7 @@ export function NotificationBell({ overHero = false }: { overHero?: boolean }) {
                 >
                   <p className="font-medium">{lang === "ar" ? n.textAr : n.textEn}</p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    {new Date(n.at).toLocaleString(lang === "ar" ? "ar-JO" : "en-GB")}
+                    {formatDateTime(n.at, lang)}
                   </p>
                 </Link>
               </li>

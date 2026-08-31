@@ -25,7 +25,7 @@ export type Account = {
   createdAt: string;
 };
 
-export type ComplaintStatus = "new" | "assigned" | "pending_review" | "closed";
+export type ComplaintStatus = "new" | "assigned" | "returned" | "pending_review" | "closed";
 
 export type EmployeeReportOutcome = "resolved" | "unresolved";
 
@@ -161,7 +161,7 @@ function migrateAccounts(parsed: LegacyAccount[] | undefined, base: Account[]): 
 function normalizeComplaint(c: Complaint & { status?: string }): Complaint {
   let status = c.status;
   if (status === "resolved") status = "closed";
-  const valid = ["new", "assigned", "pending_review", "closed"];
+  const valid = ["new", "assigned", "returned", "pending_review", "closed"];
   if (!valid.includes(status)) status = "new";
   return {
     ...c,
@@ -359,15 +359,21 @@ function seed(): State {
       createdByName: "ريم جرادات",
       createdByPhone: "0792233445",
       createdAt: ago(1, 7),
-      status: "assigned",
+      status: "returned",
       assignedTo: "e3",
-      readBy: ["e3"],
+      readBy: ["e3", "a-super"],
       employeeReport: null,
       resolution: null,
       resolvedBy: null,
       timeline: [
         { at: ago(1, 7), by: "ريم جرادات", textAr: "تم تقديم الشكوى", textEn: "Complaint submitted" },
         { at: ago(1, 4), by: "عبدالله المواقر", textAr: "تم توكيل الشكوى إلى زيد الكردي", textEn: "Assigned to Zaid Al-Kurdi" },
+        {
+          at: ago(0, 3),
+          by: "عبدالله المواقر",
+          textAr: "أُعيدت الشكوى إلى زيد الكردي: يرجى زيارة الموقع مجدداً",
+          textEn: "Returned to Zaid Al-Kurdi: please revisit the site",
+        },
       ],
     },
     {
@@ -406,15 +412,29 @@ function seed(): State {
       createdByName: "دiana القاسم",
       createdByPhone: "0794455667",
       createdAt: ago(3, 3),
-      status: "assigned",
+      status: "pending_review",
       assignedTo: "e5",
-      readBy: ["e5"],
-      employeeReport: null,
+      readBy: ["e5", "a-super"],
+      employeeReport: {
+        outcome: "unresolved",
+        note: "الكتب غير متوفرة لدى المورد — يحتاج تدخل الإدارة.",
+        lat: null,
+        lng: null,
+        at: ago(0, 2),
+        by: "لينا الحمود",
+        byId: "e5",
+      },
       resolution: null,
       resolvedBy: null,
       timeline: [
         { at: ago(3, 3), by: "دiana القاسم", textAr: "تم تقديم الشكوى", textEn: "Complaint submitted" },
         { at: ago(2, 9), by: "عبدالله المواقر", textAr: "تم توكيل الشكوى إلى لina الحمود", textEn: "Assigned to Lina Al-Hammoud" },
+        {
+          at: ago(0, 2),
+          by: "لينا الحمود",
+          textAr: "أبلغ الموظف بعدم حل المشكلة — بانتظار المراجعة",
+          textEn: "Employee reported unresolved — pending review",
+        },
       ],
     },
     {
@@ -813,7 +833,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }),
     submitEmployeeReport: (complaintId, outcome, note, coords) =>
       patchComplaint(complaintId, (c, s) => {
-        if (!me || isSuper || c.status !== "assigned" || c.assignedTo !== me.id) return { complaint: c };
+        if (
+          !me ||
+          isSuper ||
+          (c.status !== "assigned" && c.status !== "returned") ||
+          c.assignedTo !== me.id
+        ) {
+          return { complaint: c };
+        }
         const trimmed = note.trim();
         if (!trimmed) return { complaint: c };
         if (outcome === "resolved" && !coords) return { complaint: c };
@@ -922,7 +949,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return {
           complaint: {
             ...c,
-            status: "assigned",
+            status: "returned",
             assignedTo: targetId,
             employeeReport: null,
             resolution: null,
@@ -1029,7 +1056,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                   ...c,
                   assignedTo: null,
                   employeeReport: null,
-                  status: c.status === "assigned" || c.status === "pending_review" ? "new" : c.status,
+                  status:
+                    c.status === "assigned" ||
+                    c.status === "returned" ||
+                    c.status === "pending_review"
+                      ? "new"
+                      : c.status,
                 }
               : c,
           ),
@@ -1106,10 +1138,14 @@ export function assignableEmployees(ctx: Ctx): Account[] {
 /** For field employees: map internal status to simplified labels. */
 export function employeeDisplayStatus(
   status: ComplaintStatus,
-): "new" | "pending_review" | "closed" {
+  reportOutcome?: EmployeeReportOutcome | null,
+): "assigned" | "returned" | "pending_review" | "unresolved" | "closed" {
   if (status === "closed") return "closed";
-  if (status === "pending_review") return "pending_review";
-  return "new";
+  if (status === "pending_review") {
+    return reportOutcome === "unresolved" ? "unresolved" : "pending_review";
+  }
+  if (status === "returned") return "returned";
+  return "assigned";
 }
 
 export function matchesEmployeeStatusFilter(
@@ -1119,6 +1155,7 @@ export function matchesEmployeeStatusFilter(
   if (filter === "all") return true;
   if (filter === "closed") return complaint.status === "closed";
   if (filter === "pending_review") return complaint.status === "pending_review";
+  if (filter === "returned") return complaint.status === "returned";
   if (filter === "assigned" || filter === "new") return complaint.status === "assigned";
   return complaint.status === filter;
 }

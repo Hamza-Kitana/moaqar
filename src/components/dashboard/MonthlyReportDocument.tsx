@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { formatDate } from "@/lib/format";
 import { useI18n, type TKey } from "@/lib/i18n";
 import type { Account, Complaint, ComplaintStatus, State } from "@/lib/store";
 
 const STATUS_KEYS: Record<ComplaintStatus, TKey> = {
   new: "st_new",
   assigned: "st_assigned",
+  returned: "st_returned",
   pending_review: "st_pending_review",
   closed: "st_closed",
 };
@@ -228,7 +230,7 @@ function ComplaintRow({
   const lib = state.libraries.find((l) => l.id === c.libraryId);
   const branch = state.branches.find((b) => b.id === c.branchId);
   const assignee = c.assignedTo ? state.accounts.find((a: Account) => a.id === c.assignedTo) : null;
-  const dateStr = new Date(c.createdAt).toLocaleDateString(lang === "ar" ? "ar-JO" : "en-GB");
+  const dateStr = formatDate(c.createdAt, lang);
 
   return (
     <tr>
@@ -238,7 +240,7 @@ function ComplaintRow({
       <td>
         <span className="report-status-text">{t(STATUS_KEYS[c.status])}</span>
         <span className="report-status-badge">
-          <StatusBadge status={c.status} />
+          <StatusBadge status={c.status} reportOutcome={c.employeeReport?.outcome} />
         </span>
       </td>
       <td>{assignee?.name ?? t("unassigned")}</td>

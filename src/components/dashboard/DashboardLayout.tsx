@@ -85,7 +85,7 @@ export function DashboardLayout() {
   const isEmployee = me.kind === "employee";
   const pendingComplaints = isSuper
     ? complaints.filter((c) => c.status === "new").length
-    : complaints.filter((c) => c.status === "assigned").length;
+    : complaints.filter((c) => c.status === "assigned" || c.status === "returned").length;
 
   const nav: NavItem[] = [
     { to: "/dashboard", labelKey: "overview", icon: LayoutDashboard, show: true },

@@ -1,35 +1,62 @@
 import { Check } from "lucide-react";
 
 import { useI18n, type TKey } from "@/lib/i18n";
-import type { ComplaintStatus } from "@/lib/store";
+import type { ComplaintStatus, EmployeeReportOutcome } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const ADMIN_STEPS: ComplaintStatus[] = ["new", "assigned", "pending_review", "closed"];
-
-const ADMIN_STEP_KEYS: Record<ComplaintStatus, TKey> = {
-  new: "st_new",
-  assigned: "st_assigned",
-  pending_review: "st_pending_review",
-  closed: "st_closed",
-};
-
-const EMPLOYEE_STEPS = ["assigned", "pending_review", "closed"] as const;
-
-const EMPLOYEE_STEP_KEYS: Record<(typeof EMPLOYEE_STEPS)[number], TKey> = {
-  assigned: "st_new",
-  pending_review: "st_pending_review",
-  closed: "st_closed",
-};
+const ADMIN_FLOW: ComplaintStatus[] = ["new", "assigned", "pending_review", "closed"];
+const EMPLOYEE_FLOW = ["assigned", "pending_review", "closed"] as const;
 
 function adminStepIndex(status: ComplaintStatus): number {
-  const idx = ADMIN_STEPS.indexOf(status);
-  return idx >= 0 ? idx : 0;
+  switch (status) {
+    case "new":
+      return 0;
+    case "assigned":
+    case "returned":
+      return 1;
+    case "pending_review":
+      return 2;
+    case "closed":
+      return 3;
+    default:
+      return 0;
+  }
 }
 
 function employeeStepIndex(status: ComplaintStatus): number {
   if (status === "closed") return 2;
   if (status === "pending_review") return 1;
   return 0;
+}
+
+function adminStepLabel(
+  step: ComplaintStatus,
+  status: ComplaintStatus,
+  reportOutcome: EmployeeReportOutcome | null | undefined,
+): TKey {
+  if (step === "assigned") {
+    return status === "returned" ? "st_returned" : "st_assigned";
+  }
+  if (step === "pending_review") {
+    if (reportOutcome === "unresolved") return "st_unresolved";
+    return "st_pending_review";
+  }
+  return step === "new" ? "st_new" : "st_closed";
+}
+
+function employeeStepLabel(
+  step: (typeof EMPLOYEE_FLOW)[number],
+  status: ComplaintStatus,
+  reportOutcome: EmployeeReportOutcome | null | undefined,
+): TKey {
+  if (step === "assigned") {
+    return status === "returned" ? "st_returned" : "st_new";
+  }
+  if (step === "pending_review") {
+    if (reportOutcome === "unresolved") return "st_unresolved";
+    return "st_pending_review";
+  }
+  return "st_closed";
 }
 
 function StepNode({
@@ -151,20 +178,21 @@ function WorkflowStepper({
 export function WorkflowSteps({
   status,
   employeeView = false,
+  reportOutcome,
 }: {
   status: ComplaintStatus;
   employeeView?: boolean;
+  reportOutcome?: EmployeeReportOutcome | null;
 }) {
   const { t } = useI18n();
-
   const allComplete = status === "closed";
 
   if (employeeView) {
     const currentIdx = employeeStepIndex(status);
     return (
       <WorkflowStepper
-        steps={EMPLOYEE_STEPS}
-        labels={EMPLOYEE_STEPS.map((step) => t(EMPLOYEE_STEP_KEYS[step]))}
+        steps={EMPLOYEE_FLOW}
+        labels={EMPLOYEE_FLOW.map((step) => t(employeeStepLabel(step, status, reportOutcome)))}
         currentIdx={currentIdx}
         allComplete={allComplete}
       />
@@ -175,8 +203,8 @@ export function WorkflowSteps({
 
   return (
     <WorkflowStepper
-      steps={ADMIN_STEPS}
-      labels={ADMIN_STEPS.map((step) => t(ADMIN_STEP_KEYS[step]))}
+      steps={ADMIN_FLOW}
+      labels={ADMIN_FLOW.map((step) => t(adminStepLabel(step, status, reportOutcome)))}
       currentIdx={currentIdx}
       allComplete={allComplete}
     />

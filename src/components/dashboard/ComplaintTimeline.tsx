@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import type { TimelineEntry } from "@/lib/store";
 
@@ -17,7 +18,7 @@ export function ComplaintTimeline({ entries }: { entries: TimelineEntry[] }) {
             <div className="min-w-0 pb-1">
               <p className="text-xs font-medium leading-relaxed">{lang === "ar" ? entry.textAr : entry.textEn}</p>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
-                {entry.by} · {new Date(entry.at).toLocaleString(lang === "ar" ? "ar-JO" : "en-GB")}
+                {entry.by} · {formatDateTime(entry.at, lang)}
               </p>
             </div>
           </li>
