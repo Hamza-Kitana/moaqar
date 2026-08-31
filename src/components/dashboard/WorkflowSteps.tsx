@@ -83,14 +83,19 @@ function StepperTrack({
   steps,
   labels,
   currentIdx,
+  allComplete = false,
 }: {
   steps: readonly string[];
   labels: string[];
   currentIdx: number;
+  allComplete?: boolean;
 }) {
   const compact = steps.length > 3;
-  const progress =
-    steps.length <= 1 ? 0 : Math.max(0, Math.min(1, currentIdx / (steps.length - 1)));
+  const progress = allComplete
+    ? 1
+    : steps.length <= 1
+      ? 0
+      : Math.max(0, Math.min(1, currentIdx / (steps.length - 1)));
   const nodeHalf = compact ? "1.625rem" : "2.25rem";
 
   return (
@@ -114,8 +119,8 @@ function StepperTrack({
             <StepNode
               key={step}
               label={labels[i] ?? step}
-              done={i < currentIdx}
-              active={i === currentIdx}
+              done={allComplete || i < currentIdx}
+              active={!allComplete && i === currentIdx}
               compact={compact}
             />
           ))}
@@ -129,14 +134,16 @@ function WorkflowStepper({
   steps,
   labels,
   currentIdx,
+  allComplete = false,
 }: {
   steps: readonly string[];
   labels: string[];
   currentIdx: number;
+  allComplete?: boolean;
 }) {
   return (
     <div className="flex justify-center rounded-xl border border-border/60 bg-card/80 px-2 py-4 shadow-sm backdrop-blur-sm sm:px-4">
-      <StepperTrack steps={steps} labels={labels} currentIdx={currentIdx} />
+      <StepperTrack steps={steps} labels={labels} currentIdx={currentIdx} allComplete={allComplete} />
     </div>
   );
 }
@@ -150,6 +157,8 @@ export function WorkflowSteps({
 }) {
   const { t } = useI18n();
 
+  const allComplete = status === "closed";
+
   if (employeeView) {
     const currentIdx = employeeStepIndex(status);
     return (
@@ -157,6 +166,7 @@ export function WorkflowSteps({
         steps={EMPLOYEE_STEPS}
         labels={EMPLOYEE_STEPS.map((step) => t(EMPLOYEE_STEP_KEYS[step]))}
         currentIdx={currentIdx}
+        allComplete={allComplete}
       />
     );
   }
@@ -168,6 +178,7 @@ export function WorkflowSteps({
       steps={ADMIN_STEPS}
       labels={ADMIN_STEPS.map((step) => t(ADMIN_STEP_KEYS[step]))}
       currentIdx={currentIdx}
+      allComplete={allComplete}
     />
   );
 }
